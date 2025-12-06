@@ -1,7 +1,7 @@
-import { Booking } from "../../booking/entities/booking.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Comment } from "src/comment/entities/comment.entity";
-import { RefreshToken } from "src/auth/entities/refresh-token.entity";
+import { Booking } from '../../booking/entities/booking.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Comment } from 'src/comment/entities/comment.entity';
+import { RefreshToken } from 'src/auth/entities/refresh-token.entity';
 
 export enum UserRole {
   USER = 'USER',
@@ -12,30 +12,29 @@ export enum UserRole {
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
-  id: number
+  id: number;
 
   @Column()
-  name: string
+  name: string;
 
   @Column()
-  password: string
+  password: string;
 
   @Column({ unique: true })
   email: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date
+  createdAt: Date;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
-  role: UserRole
+  role: UserRole;
 
   @OneToMany(() => Booking, (booking) => booking.establishment)
-  bookings: Booking[]
+  bookings: Booking[];
 
   @OneToMany(() => Comment, (comment) => comment.user, { cascade: true })
-  comments: Comment[]
+  comments: Comment[];
 
   @OneToMany(() => RefreshToken, (token) => token.user, { cascade: true })
-  refreshToken: RefreshToken[]
-
+  refreshToken: RefreshToken[];
 }

@@ -60,4 +60,34 @@ export class EstablishmentController {
   remove(@Param('id') id: string) {
     return this.establishmentService.remove(+id);
   }
+
+  @Post(':id/features/:featureId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @ApiBearerAuth()
+  @ApiOperation({summary: 'Add a single feature to establishment'})
+  @ApiOkResponse({ description: 'Feature added successfully', type: Establishment })
+  @ApiBadRequestResponse({description: 'Invalid id or feature not found'})
+  @ApiNotFoundResponse({description: 'Establishment not found'})
+  addFeature(
+    @Param('id') id: string,
+    @Param('featureId') featureId: string
+  ) {
+    return this.establishmentService.addFeature(+id, +featureId);
+  }
+
+  @Delete(':id/features/:featureId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @ApiBearerAuth()
+  @ApiOperation({summary: 'Remove a single feature from establishment'})
+  @ApiOkResponse({ description: 'Feature removed successfully', type: Establishment })
+  @ApiBadRequestResponse({description: 'Invalid id'})
+  @ApiNotFoundResponse({description: 'Establishment or feature not found'})
+  removeFeature(
+    @Param('id') id: string,
+    @Param('featureId') featureId: string
+  ) {
+    return this.establishmentService.removeFeature(+id, +featureId);
+  }
 }

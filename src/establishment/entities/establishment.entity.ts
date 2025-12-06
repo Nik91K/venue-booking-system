@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, CreateDateColumn, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Comment } from "../../comment/entities/comment.entity";
 import { User } from "../../users/entities/user.entity";
+import { Feature } from "src/features/entities/feature.entity";
 
 @Entity()
 export class Establishment {
@@ -26,4 +27,18 @@ export class Establishment {
 
     @OneToMany(() => Comment, (comment) => comment.establishment)
     comments: Comment[]
+
+    @ManyToMany(() => Feature, (feature) => feature.establishments)
+    @JoinTable({
+        name: 'establishment_features',
+        joinColumn: {
+            name: 'establishment_id',
+            referencedColumnName: 'id'
+        },
+        inverseJoinColumn: {
+            name: 'feature_id',
+            referencedColumnName: 'id'
+        }
+    })
+    features: Feature[]
 }

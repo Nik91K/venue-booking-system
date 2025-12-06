@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsNumber, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, Min, IsArray, IsOptional } from 'class-validator';
 
 export class UpdateEstablishmentDto {
     @IsString()
@@ -33,4 +33,13 @@ export class UpdateEstablishmentDto {
         description: "Total number of seats"
     })
     totalSeats?: number
+
+    @IsArray()
+    @IsOptional()
+    @ApiProperty({
+        description: "Array of feature ID",
+        type: [Number],
+        required: false
+    })
+    featureIds?: number[]
 }
