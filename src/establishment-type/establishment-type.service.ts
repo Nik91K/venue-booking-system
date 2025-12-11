@@ -1,0 +1,49 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateEstablishmentTypeDto } from './dto/create-establishment-type.dto';
+import { UpdateEstablishmentTypeDto } from './dto/update-establishment-type.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { EstablishmentType } from './entities/establishment-type.entity';
+import { Repository } from 'typeorm';
+
+@Injectable()
+export class EstablishmentTypeService {
+  constructor (
+    @InjectRepository(EstablishmentType)
+    private typeRepository: Repository<EstablishmentType>,
+  ) {}
+
+  async create(createEstablishmentTypeDto: CreateEstablishmentTypeDto) {
+    return this.typeRepository.save(this.typeRepository.create(createEstablishmentTypeDto))
+  }
+
+  async findAll(): Promise<EstablishmentType[]> {
+    return this.typeRepository.find({ relations: ['establishments'] })
+  }
+
+  async findOne(id: number): Promise<EstablishmentType> {
+    const type = await this.typeRepository.findOne({
+      where: { id },
+      relations: ['establishments']
+    });
+
+    if (!type) {
+      throw new NotFoundException(`EstablishmentType ${id} not found`)
+    }
+
+    return type
+  }
+
+  async update(id: number, updateEstablishmentTypeDto: UpdateEstablishmentTypeDto) {
+    const type = await this.findOne(id)
+    this.typeRepository.merge(type, updateEstablishmentTypeDto)
+    return this.typeRepository.save(type)
+  }
+
+  async remove(id: number) {
+    const type = await this.typeRepository.delete(id)
+    if (type.affected === 0) {
+      throw new NotFoundException(`EstablishmentType ${id} not found`)
+    }
+    return type
+  }
+}

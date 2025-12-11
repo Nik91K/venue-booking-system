@@ -5,6 +5,7 @@ import { Establishment } from './entities/establishment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Feature } from 'src/features/entities/feature.entity';
+import { EstablishmentType } from 'src/establishment-type/entities/establishment-type.entity';
 
 @Injectable()
 export class EstablishmentService {
@@ -13,10 +14,27 @@ export class EstablishmentService {
     private establishmentRepository: Repository<Establishment>,
     @InjectRepository(Feature)
     private featureRepository: Repository<Feature>,
+    @InjectRepository(EstablishmentType)
+    private typeRepository: Repository<EstablishmentType>,
   ){}
 
   async create (createEstablishmentDto: CreateEstablishmentDto) {
-    return this.establishmentRepository.save(this.establishmentRepository.create(createEstablishmentDto))
+    const establishment = this.establishmentRepository.create(createEstablishmentDto)
+
+    if (createEstablishmentDto.typeId) {
+      const type = await this.typeRepository.findOne({
+        where: { id: createEstablishmentDto.typeId }
+      })
+
+      if (!type) {
+        throw new NotFoundException(`EstablishmentType ${createEstablishmentDto.typeId} not found`)
+      }
+
+      establishment.type = type
+    }
+
+    return this.establishmentRepository.save(establishment)
+
   }
 
   async getAllReservation (): Promise<Establishment[]> {

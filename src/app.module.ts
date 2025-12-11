@@ -9,6 +9,7 @@ import { AvailabilityModule } from './availability/availability.module';
 import { BookingModule } from './booking/booking.module';
 import { UsersModule } from './users/users.module';
 import { FeaturesModule } from './features/features.module';
+import { EstablishmentTypeModule } from './establishment-type/establishment-type.module';
 
 @Module({ 
   imports: [ ConfigModule.forRoot({ 
@@ -22,7 +23,7 @@ import { FeaturesModule } from './features/features.module';
     useFactory: (configService: ConfigService) => configService.get('database') as TypeOrmModuleOptions, }), 
     EstablishmentModule, 
     CommentModule, 
-    AuthModule, AvailabilityModule, BookingModule, UsersModule, FeaturesModule, 
+    AuthModule, AvailabilityModule, BookingModule, UsersModule, FeaturesModule, EstablishmentTypeModule, 
   ], 
   controllers: [], 
   providers: [], 

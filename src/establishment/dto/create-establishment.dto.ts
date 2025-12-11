@@ -41,4 +41,12 @@ export class CreateEstablishmentDto {
         required: false
     })
     featureIds?: number[]
+
+    @IsNumber()
+    @IsOptional()
+    @ApiProperty({
+        example: 1,
+        description: "Establishment type ID"
+    })
+    typeId?: number
 }
