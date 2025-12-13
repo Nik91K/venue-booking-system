@@ -20,8 +20,4 @@ export class CreateAuthDto {
     @IsEnum(UserRole)
     @ApiProperty({example: UserRole.USER, description: "User role", enum: UserRole, default: UserRole.USER})
     role: UserRole
-
-    @IsOptional()
-    @ApiProperty({ example: 1, description: "Esablishment ID" })
-    establishmentId: number
 }

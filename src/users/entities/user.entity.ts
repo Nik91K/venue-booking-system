@@ -5,8 +5,9 @@ import { RefreshToken } from 'src/auth/entities/refresh-token.entity';
 
 export enum UserRole {
   USER = 'USER',
-  ADMIN = 'ADMIN',
   MODERATOR = 'MODERATOR',
+  OWNER = 'OWNER',
+  SUBER_ADMIN = 'SUBER_ADMIN',
 }
 
 @Entity('users')

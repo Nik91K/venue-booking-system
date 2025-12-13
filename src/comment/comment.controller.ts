@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Comment } from './entities/comment.entity';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { UserRole } from 'src/users/entities/user.entity';
+import { JwtAuthGuard, RolesGuard } from 'src/auth/jwt.guard';
 
 @ApiTags("Comments")
 @Controller('comment')
@@ -34,6 +37,8 @@ export class CommentController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUBER_ADMIN, UserRole.OWNER, UserRole.MODERATOR)
   @ApiOperation({summary: 'Delete  comment'})
   @ApiNotFoundResponse({description:'Invalid id'})
   remove(@Param('id') id: string) {

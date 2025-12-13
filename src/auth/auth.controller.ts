@@ -40,7 +40,7 @@ export class AuthController {
 
   @Get('users')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUBER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all users' })
   @ApiOkResponse({ description: 'Users retrieved successfully' })
@@ -51,7 +51,7 @@ export class AuthController {
   @Patch(':id/role')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUBER_ADMIN)
   @ApiOperation({ summary: 'Change user role' })
   @ApiOkResponse({ description: 'Role successfully changed' })
   @ApiNotFoundResponse({ description: 'User not found' })
@@ -62,7 +62,7 @@ export class AuthController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUBER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete user' })
   @ApiOkResponse({ description: 'User deleted successfully' })

@@ -14,7 +14,7 @@ export class EstablishmentTypeController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUBER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create establishment type' })
   create(@Body() createEstablishmentTypeDto: CreateEstablishmentTypeDto) {
@@ -35,7 +35,7 @@ export class EstablishmentTypeController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUBER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update establishment type' })
   update(@Param('id') id: string, @Body() updateEstablishmentTypeDto: UpdateEstablishmentTypeDto) {
@@ -44,7 +44,7 @@ export class EstablishmentTypeController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUBER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete establishment type' })
   remove(@Param('id') id: string) {

@@ -14,7 +14,7 @@ export class EstablishmentController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Roles(UserRole.SUBER_ADMIN, UserRole.OWNER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create establishment'})
   @ApiOkResponse({ description: "Create success", type: Establishment })
@@ -42,7 +42,7 @@ export class EstablishmentController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Roles(UserRole.SUBER_ADMIN, UserRole.OWNER)
   @ApiBearerAuth()
   @ApiOperation({summary: 'Updating information about establishment'})
   @ApiOkResponse({ type: Establishment })
@@ -53,7 +53,7 @@ export class EstablishmentController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Roles(UserRole.SUBER_ADMIN, UserRole.OWNER)
   @ApiBearerAuth()
   @ApiOperation({summary: 'Delete establishment'})
   @ApiBadRequestResponse({description:'Invalid id'})
@@ -63,7 +63,7 @@ export class EstablishmentController {
 
   @Post(':id/features/:featureId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Roles(UserRole.SUBER_ADMIN, UserRole.OWNER)
   @ApiBearerAuth()
   @ApiOperation({summary: 'Add a single feature to establishment'})
   @ApiOkResponse({ description: 'Feature added successfully', type: Establishment })
@@ -78,7 +78,7 @@ export class EstablishmentController {
 
   @Delete(':id/features/:featureId')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Roles(UserRole.SUBER_ADMIN, UserRole.OWNER)
   @ApiBearerAuth()
   @ApiOperation({summary: 'Remove a single feature from establishment'})
   @ApiOkResponse({ description: 'Feature removed successfully', type: Establishment })
