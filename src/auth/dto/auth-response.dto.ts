@@ -6,6 +6,4 @@ export class AuthResponseDto {
 
     @ApiProperty({ example: "refresh_token", description: "Refresh Token" })
     refreshToken: string
-
-
 }

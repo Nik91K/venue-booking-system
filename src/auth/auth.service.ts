@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RefreshToken } from './entities/refresh-token.entity';
+import { generateAvatarSeed, generateAvatarUrl } from 'src/common/utils/avatar.util';
 
 @Injectable()
 export class AuthService {
@@ -23,8 +24,11 @@ export class AuthService {
     const existing = await this.userRepo.findOne({ where: { email: dto.email } })
     if (existing) throw new ConflictException('User already exists')
 
+      const avatarSeed = generateAvatarSeed()
+      const avatarUrl = generateAvatarUrl(avatarSeed)
+
     const hash = await bcrypt.hash(dto.password, 10)
-    const user = this.userRepo.create({ ...dto, password: hash });
+    const user = this.userRepo.create({ ...dto, password: hash, avatarUrl, avatarSeed });
     await this.userRepo.save(user)
 
     const tokens = await this.getTokens(user.id, user.email, user.role)

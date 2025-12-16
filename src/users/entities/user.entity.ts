@@ -18,11 +18,20 @@ export class User {
   @Column()
   name: string;
 
+  @Column({ unique: true })
+  email: string;
+
   @Column()
   password: string;
 
   @Column({ unique: true })
-  email: string;
+  phoneNumber: string;
+
+  @Column()
+  avatarSeed: string;
+
+  @Column()
+  avatarUrl: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
