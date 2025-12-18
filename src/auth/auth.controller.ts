@@ -8,6 +8,7 @@ import { JwtAuthGuard, RolesGuard } from './jwt.guard';
 import { LoginDto } from './dto/login.dto';
 import { UserRole } from 'src/users/entities/user.entity';
 import { Roles } from './decorators/roles.decorator';
+import { UpdateAuthDto } from './dto/update-auth.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -38,37 +39,69 @@ export class AuthController {
     return this.authService.refreshToken(refreshTokenDto.refreshToken)
   }
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiOkResponse({ description: 'Current user profile retrieved' })
+  @ApiUnauthorizedResponse({ description: 'Not authenticated' })
+  getCurrentUser(@Request() req) {
+    return this.authService.getCurrentUser(req.user.id)
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update current user profile' })
+  @ApiOkResponse({ description: 'Profile updated successfully' })
+  @ApiUnauthorizedResponse({ description: 'Not authenticated' })
+  updateCurrentUser(@Request() req, @Body() updateAuthDto: UpdateAuthDto) {
+    return this.authService.updateCurrentUser(req.user.id, updateAuthDto)
+  }
+
   @Get('users')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUBER_ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'Get all users (admin only)' })
   @ApiOkResponse({ description: 'Users retrieved successfully' })
+  @ApiForbiddenResponse({ description: 'Insufficient permissions' })
   findAll() {
     return this.authService.findAll()
+  }
+
+  @Get('users/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user by ID' })
+  @ApiOkResponse({ description: 'User retrieved successfully' })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  getUserById(@Param('id') id: string) {
+    return this.authService.getUserById(+id)
   }
 
   @Patch(':id/role')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(UserRole.SUBER_ADMIN)
-  @ApiOperation({ summary: 'Change user role' })
+  @ApiOperation({ summary: 'Change user role (admin only)' })
   @ApiOkResponse({ description: 'Role successfully changed' })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiForbiddenResponse({ description: 'Not enough rights' })
-  changeRole(@Param('id') id: number, @Body() changeRoleDto: ChangeRoleDto ) {
-    return this.authService.changeRole(id, changeRoleDto.role)
+  changeRole(@Param('id') id: string, @Body() changeRoleDto: ChangeRoleDto) {
+    return this.authService.changeRole(+id, changeRoleDto.role)
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUBER_ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete user' })
+  @ApiOperation({ summary: 'Delete user (admin only)' })
   @ApiOkResponse({ description: 'User deleted successfully' })
   @ApiNotFoundResponse({ description: 'User not found' })
-  remove(@Param('id') id: number) {
-    return this.authService.deleteUser(id)
+  @ApiForbiddenResponse({ description: 'Insufficient permissions' })
+  remove(@Param('id') id: string) {
+    return this.authService.deleteUser(+id)
   }
 
   @Post('logout')
@@ -76,8 +109,8 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout current user' })
   @ApiOkResponse({ description: 'Logged out successfully' })
-  logout(@Request() request) {
-    return this.authService.logout(request.user.userId)
+  logout(@Request() req) {
+    return this.authService.logout(req.user.id)
   }
 
   @Post('logout-all')
@@ -85,7 +118,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout from all devices' })
   @ApiOkResponse({ description: 'Logged out from all devices successfully' })
-  logoutAllDevices(@Request() request) {
-    return this.authService.logoutAllDevices(request.user.userId);
+  logoutAllDevices(@Request() req) {
+    return this.authService.logoutAllDevices(req.user.id)
   }
 }

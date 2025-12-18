@@ -37,8 +37,23 @@ export class EstablishmentService {
 
   }
 
-  async getAllReservation (): Promise<Establishment[]> {
-    return this.establishmentRepository.find()
+  async getAllEstablishments (): Promise<Establishment[]> {
+    return this.establishmentRepository.find({
+      relations: ['type', 'features', 'comments']
+    })
+  }
+
+  async getEstablishmentById (id: number): Promise<Establishment> {
+    const establishment = await this.establishmentRepository.findOne({
+      where: { id },
+      relations: ['type', 'features', 'comments', 'bookings']
+    })
+
+    if (!establishment) {
+      throw new NotFoundException(`Establishment ${id} not found`)
+    }
+
+    return establishment
   }
 
   async getAllComments (id: number) {

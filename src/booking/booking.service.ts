@@ -19,7 +19,6 @@ export class BookingService {
     private availabilityService: AvailabilityService,
   ) {}
 
-
   async create(createBookingDto: CreateBookingDto, userId: number): Promise<Booking> {
     const user = await this.userRepository.findOne({ where: { id: userId } })
     if (!user) {
@@ -78,5 +77,39 @@ export class BookingService {
 
     return await this.bookingRepository.save(booking)
   }
-  
+
+  async getAllBookings(): Promise<Booking[]> {
+    return this.bookingRepository.find({
+      relations: ['user', 'establishment']
+    })
+  }
+
+  async getUserBookings(userId: number): Promise<Booking[]> {
+    return this.bookingRepository.find({
+      where: { user: { id: userId } },
+      relations: ['establishment'],
+      order: { bookingDate: 'DESC' }
+    })
+  }
+
+  async getEstablishmentBookings(establishmentId: number): Promise<Booking[]> {
+    return this.bookingRepository.find({
+      where: { establishment: { id: establishmentId } },
+      relations: ['user'],
+      order: { bookingDate: 'DESC' }
+    })
+  }
+
+  async getBookingById(id: number): Promise<Booking> {
+    const booking = await this.bookingRepository.findOne({
+      where: { id },
+      relations: ['user', 'establishment']
+    })
+
+    if (!booking) {
+      throw new NotFoundException(`Booking ${id} not found`)
+    }
+
+    return booking
+  }
 }

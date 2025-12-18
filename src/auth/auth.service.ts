@@ -12,7 +12,7 @@ import { generateAvatarSeed, generateAvatarUrl } from 'src/common/utils/avatar.u
 
 @Injectable()
 export class AuthService {
- constructor(
+  constructor(
     @InjectRepository(User)
     private userRepo: Repository<User>,
     @InjectRepository(RefreshToken)
@@ -24,8 +24,8 @@ export class AuthService {
     const existing = await this.userRepo.findOne({ where: { email: dto.email } })
     if (existing) throw new ConflictException('User already exists')
 
-      const avatarSeed = generateAvatarSeed()
-      const avatarUrl = generateAvatarUrl(avatarSeed)
+    const avatarSeed = generateAvatarSeed()
+    const avatarUrl = generateAvatarUrl(avatarSeed)
 
     const hash = await bcrypt.hash(dto.password, 10)
     const user = this.userRepo.create({ ...dto, password: hash, avatarUrl, avatarSeed });
@@ -90,8 +90,58 @@ export class AuthService {
   }
 
   async findAll () {
-    const user = await this.userRepo.find({relations: ['establishment']})
-    return user.map(user => user)
+    const users = await this.userRepo.find({
+      relations: ['establishment', 'bookings']
+    })
+    return users.map(user => {
+      const { password, ...userWithoutPassword } = user
+      return userWithoutPassword
+    })
+  }
+
+  async getCurrentUser (userId: number) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['establishment', 'bookings', 'comments']
+    })
+
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
+
+    const { password, ...userWithoutPassword } = user
+    return userWithoutPassword
+  }
+
+  async getUserById (id: number) {
+    const user = await this.userRepo.findOne({
+      where: { id },
+      relations: ['establishment', 'comments']
+    })
+
+    if (!user) {
+      throw new NotFoundException(`User ${id} not found`)
+    }
+
+    const { password, ...userWithoutPassword } = user
+    return userWithoutPassword
+  }
+
+  async updateCurrentUser (userId: number, dto: UpdateAuthDto) {
+    const user = await this.userRepo.findOneBy({ id: userId })
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
+
+    if (dto.password) {
+      dto.password = await bcrypt.hash(dto.password, 10)
+    }
+
+    Object.assign(user, dto)
+    const updatedUser = await this.userRepo.save(user)
+
+    const { password, ...userWithoutPassword } = updatedUser
+    return userWithoutPassword
   }
 
   async update (id: number, dto: UpdateAuthDto) {
@@ -128,17 +178,16 @@ export class AuthService {
 
     const tokens = await this.getTokens(user.id, user.email, user.role)
 
-    return { user, ...tokens, massage: 'Role updated' }
+    return { user, ...tokens, message: 'Role updated' }
   }
 
   async logout (userId: number) {
     await this.refreshTokenRepo.delete({user: {id: userId}})
-    return { message: 'Logget out' }
+    return { message: 'Logged out' }
   }
 
   async logoutAllDevices (userId: number) {
     await this.refreshTokenRepo.delete({user: {id: userId}})
-    return { message: 'Logget out from all device' }
+    return { message: 'Logged out from all devices' }
   }
-
 }

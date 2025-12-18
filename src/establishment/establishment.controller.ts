@@ -25,18 +25,26 @@ export class EstablishmentController {
     return this.establishmentService.create(createEstablishmentDto);
   }
 
-  @Get('reservations')
-  @ApiOperation({summary: 'Get all reservations from establishments'})
-  @ApiOkResponse({ type: [Establishment] })
-  getAllReservation() {
-    return this.establishmentService.getAllReservation();
+  @Get()
+  @ApiOperation({ summary: 'Get all establishments' })
+  @ApiOkResponse({ description: 'List of all establishments', type: [Establishment] })
+  getAllEstablishments() {
+    return this.establishmentService.getAllEstablishments();
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get establishment by ID' })
+  @ApiOkResponse({ description: 'Establishment details', type: Establishment })
+  @ApiNotFoundResponse({ description: 'Establishment not found' })
+  getEstablishmentById(@Param('id') id: string) {
+    return this.establishmentService.getEstablishmentById(+id);
   }
 
   @Get(':id/comments')
-  @ApiOperation({summary: 'Get all comments from establishments'})
+  @ApiOperation({summary: 'Get all comments from establishment'})
   @ApiOkResponse({ description: "Comments retrieved successfully" })
   @ApiNotFoundResponse({ description: 'Establishment not found' })
-  getAllComments(@Param('id') id:string) {
+  getAllComments(@Param('id') id: string) {
     return this.establishmentService.getAllComments(+id)
   }
 
@@ -44,7 +52,7 @@ export class EstablishmentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUBER_ADMIN, UserRole.OWNER)
   @ApiBearerAuth()
-  @ApiOperation({summary: 'Updating information about establishment'})
+  @ApiOperation({summary: 'Update establishment information'})
   @ApiOkResponse({ type: Establishment })
   @ApiBadRequestResponse({description:'Invalid id'})
   update(@Param('id') id: string, @Body() updateEstablishmentDto: UpdateEstablishmentDto) {
