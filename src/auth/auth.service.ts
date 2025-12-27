@@ -102,7 +102,7 @@ export class AuthService {
   async getCurrentUser (userId: number) {
     const user = await this.userRepo.findOne({
       where: { id: userId },
-      relations: ['establishment', 'bookings', 'comments']
+      relations: ['bookings', 'comments']
     })
 
     if (!user) {
@@ -116,7 +116,7 @@ export class AuthService {
   async getUserById (id: number) {
     const user = await this.userRepo.findOne({
       where: { id },
-      relations: ['establishment', 'comments']
+      relations: ['comments']
     })
 
     if (!user) {

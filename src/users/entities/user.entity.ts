@@ -7,7 +7,7 @@ export enum UserRole {
   USER = 'USER',
   MODERATOR = 'MODERATOR',
   OWNER = 'OWNER',
-  SUBER_ADMIN = 'SUBER_ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN',
 }
 
 @Entity('users')

@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Feature } from 'src/features/entities/feature.entity';
 import { EstablishmentType } from 'src/establishment-type/entities/establishment-type.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class EstablishmentService {
@@ -16,9 +17,12 @@ export class EstablishmentService {
     private featureRepository: Repository<Feature>,
     @InjectRepository(EstablishmentType)
     private typeRepository: Repository<EstablishmentType>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ){}
 
   async create (createEstablishmentDto: CreateEstablishmentDto) {
+    const { userId, ...data } = createEstablishmentDto
     const establishment = this.establishmentRepository.create(createEstablishmentDto)
 
     if (createEstablishmentDto.typeId) {
@@ -32,6 +36,13 @@ export class EstablishmentService {
 
       establishment.type = type
     }
+
+    const user = await this.userRepository.findOneBy({ id:userId })
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    establishment.owner = user
 
     return this.establishmentRepository.save(establishment)
 

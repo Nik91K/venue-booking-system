@@ -47,4 +47,8 @@ export class Establishment {
     @JoinColumn({ name: 'type_id' })
     type: EstablishmentType
 
+    @ManyToOne(() => User, { eager: true })
+    @JoinColumn({ name: 'owner_id' })
+    owner: User
+
 }

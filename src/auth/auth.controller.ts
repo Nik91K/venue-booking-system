@@ -46,7 +46,7 @@ export class AuthController {
   @ApiOkResponse({ description: 'Current user profile retrieved' })
   @ApiUnauthorizedResponse({ description: 'Not authenticated' })
   getCurrentUser(@Request() req) {
-    return this.authService.getCurrentUser(req.user.id)
+    return this.authService.getCurrentUser(req.user.userId)
   }
 
   @Patch('me')
@@ -61,7 +61,7 @@ export class AuthController {
 
   @Get('users')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUBER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all users (admin only)' })
   @ApiOkResponse({ description: 'Users retrieved successfully' })
@@ -83,7 +83,7 @@ export class AuthController {
   @Patch(':id/role')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(UserRole.SUBER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiOperation({ summary: 'Change user role (admin only)' })
   @ApiOkResponse({ description: 'Role successfully changed' })
   @ApiNotFoundResponse({ description: 'User not found' })
@@ -94,7 +94,7 @@ export class AuthController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUBER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete user (admin only)' })
   @ApiOkResponse({ description: 'User deleted successfully' })

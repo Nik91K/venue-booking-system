@@ -38,7 +38,7 @@ export class CommentController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUBER_ADMIN, UserRole.OWNER, UserRole.MODERATOR)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.MODERATOR)
   @ApiOperation({summary: 'Delete  comment'})
   @ApiNotFoundResponse({description:'Invalid id'})
   remove(@Param('id') id: string) {

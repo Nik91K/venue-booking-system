@@ -7,10 +7,11 @@ import { Comment } from 'src/comment/entities/comment.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { Feature } from 'src/features/entities/feature.entity';
 import { EstablishmentType } from 'src/establishment-type/entities/establishment-type.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Establishment, Comment, Feature, EstablishmentType]),
+    TypeOrmModule.forFeature([Establishment, Comment, Feature, EstablishmentType, User]),
     AuthModule
   ],
   controllers: [EstablishmentController],
