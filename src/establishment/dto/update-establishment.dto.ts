@@ -3,6 +3,7 @@ import { IsString, IsNotEmpty, IsNumber, Min, IsArray, IsOptional } from 'class-
 
 export class UpdateEstablishmentDto {
     @IsString()
+    @IsOptional()
     @IsNotEmpty()
     @ApiProperty({
         example: "Bakery",
@@ -12,6 +13,7 @@ export class UpdateEstablishmentDto {
 
     @IsString()
     @IsNotEmpty()
+    @IsOptional()
     @ApiProperty({
         example: "Haharina St, 29, Cherkasy, Cherkasy Oblast, 18000",
         description: "Address of the establishment"
@@ -20,6 +22,7 @@ export class UpdateEstablishmentDto {
 
     @IsString()
     @IsNotEmpty()
+    @IsOptional()
     @ApiProperty({
         example: "Calm and comfortable establishment",
         description: "Some description"
@@ -28,6 +31,7 @@ export class UpdateEstablishmentDto {
 
     @IsNumber()
     @Min(1)
+    @IsOptional()
     @ApiProperty({
         example: 20,
         description: "Total number of seats"

@@ -18,10 +18,16 @@ export class Establishment {
     address: string
 
     @Column({ type: "text" })
-    description?: string
+    description: string
 
     @Column({ type: "int", default: 0})
     totalSeats: number
+
+    @Column({ type: "text", nullable: true })
+    coverPhono?: string
+
+    @Column({ type: "simple-array", nullable: true })
+    photos?: string[]
 
     @CreateDateColumn({ type: "timestamp" })
     createdAt: Date

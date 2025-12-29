@@ -1,12 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { EstablishmentService } from './establishment.service';
 import { CreateEstablishmentDto } from './dto/create-establishment.dto';
 import { UpdateEstablishmentDto } from './dto/update-establishment.dto';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConsumes, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { Establishment } from './entities/establishment.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from 'src/users/entities/user.entity';
 import { RolesGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+
 
 @Controller('establishment')
 export class EstablishmentController {
@@ -52,6 +56,26 @@ export class EstablishmentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
   @ApiBearerAuth()
+    @UseInterceptors(
+    FileInterceptor('coverPhoto', {
+      storage: diskStorage({
+        destination: './uploads/establishments',
+        filename: (_req, file, cb) => {
+          const uniqueSuffix = crypto.randomUUID();
+          cb(null, `establishment-${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+      fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.startsWith('image/')) {
+          return cb(new BadRequestException('Only images allowed'), false);
+        }
+        cb(null, true);
+      },
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
+    }),
+  )
   @ApiOperation({summary: 'Update establishment information'})
   @ApiOkResponse({ type: Establishment })
   @ApiBadRequestResponse({description:'Invalid id'})
