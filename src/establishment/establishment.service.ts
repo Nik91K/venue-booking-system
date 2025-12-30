@@ -21,8 +21,7 @@ export class EstablishmentService {
     private userRepository: Repository<User>,
   ){}
 
-  async create (createEstablishmentDto: CreateEstablishmentDto) {
-    const { userId, ...data } = createEstablishmentDto
+  async create (createEstablishmentDto: CreateEstablishmentDto, userId: number ) {
     const establishment = this.establishmentRepository.create(createEstablishmentDto)
 
     if (createEstablishmentDto.typeId) {
@@ -48,16 +47,18 @@ export class EstablishmentService {
 
   }
 
-  async getAllEstablishments (): Promise<Establishment[]> {
-    return this.establishmentRepository.find({
-      relations: ['type', 'features', 'comments']
-    })
+  async getAllEstablishments(): Promise<Establishment[]> {
+    const establishments = await this.establishmentRepository.find({
+      relations: ['type', 'features', 'comments'],
+    });
+
+    return establishments;
   }
 
   async getEstablishmentById (id: number): Promise<Establishment> {
     const establishment = await this.establishmentRepository.findOne({
       where: { id },
-      relations: ['type', 'features', 'comments', 'bookings']
+      relations: ['type', 'features', 'comments']
     })
 
     if (!establishment) {
@@ -80,7 +81,7 @@ export class EstablishmentService {
     return establishment.comments
   }
 
-  async edit (id: number, updateEstablishmentDto: UpdateEstablishmentDto) {
+  async edit (id: number, updateEstablishmentDto: UpdateEstablishmentDto, file?: Express.Multer.File,) {
     const establishment = await this.establishmentRepository.findOne({
       where: { id },
       relations: ['features']
@@ -88,6 +89,10 @@ export class EstablishmentService {
 
     if(!establishment) {
       throw new NotFoundException(`Establishment ${id} invalid`)
+    }
+
+    if (file) {
+      establishment.coverPhoto = `/uploads/establishments/${file.filename}`
     }
 
     this.establishmentRepository.merge(establishment, updateEstablishmentDto)

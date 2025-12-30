@@ -39,7 +39,11 @@ export class EstablishmentSeeder {
         description: faker.lorem.paragraph(),
         totalSeats: faker.number.int({ min: 1, max: 100 }),
         owner: faker.helpers.arrayElement(owners),
-        type: faker.helpers.arrayElement(type)
+        type: faker.helpers.arrayElement(type),
+        coverPhoto: 'https://placehold.co/600x400',
+        photos: Array.from({ length: 5 }, () =>
+          faker.image.urlPicsumPhotos({ width: 600, height: 400 })
+        )
       })
       establishments.push(establishment)
     }

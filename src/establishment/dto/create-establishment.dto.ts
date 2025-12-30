@@ -49,11 +49,4 @@ export class CreateEstablishmentDto {
         description: "Establishment type ID"
     })
     typeId?: number
-
-    @IsNumber()
-    @ApiProperty({
-      example: 1.,
-      description: "User ID"
-    })
-    userId: number
 }

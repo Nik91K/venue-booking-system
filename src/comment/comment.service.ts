@@ -18,15 +18,16 @@ export class CommentService {
     private userRepository: Repository<User>,
   ){}
 
-  async create (createCommentDto: CreateCommentDto) {
-    const { establishmentId, userId, ...data } = createCommentDto
-    const establishment = await this.establishmentRepository.findOneBy({ id: establishmentId})
+  async create(createCommentDto: CreateCommentDto, userId: number) {
+    const { establishmentId, ...data } = createCommentDto;
+    
+    const establishment = await this.establishmentRepository.findOneBy({ id: establishmentId })
 
     if (!establishment) {
       throw new NotFoundException(`Establishment ${establishmentId} not found`);
     }
 
-    const user = await this.userRepository.findOneBy({ id:userId })
+    const user = await this.userRepository.findOneBy({ id: userId })
     if (!user) {
       throw new NotFoundException(`User ${userId} not found`);
     }
@@ -40,7 +41,17 @@ export class CommentService {
     return this.commentRepository.save(comment)
   }
 
-  async findByEstablishment() {}
+  async findAllComments() {
+    return await this.commentRepository.find({})
+  }
+
+  async findByEstablishment(establishmentId: number) {
+    return this.commentRepository.find({
+      where: {
+        establishment: { id: establishmentId }
+      },
+    })
+  }
 
   async update(id: number, updateCreateCommentDto: UpdateCommentDto) {
     const comment = await this.commentRepository.findOneBy({id});

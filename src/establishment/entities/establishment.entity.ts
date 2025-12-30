@@ -24,7 +24,7 @@ export class Establishment {
     totalSeats: number
 
     @Column({ type: "text", nullable: true })
-    coverPhono?: string
+    coverPhoto?: string
 
     @Column({ type: "simple-array", nullable: true })
     photos?: string[]
@@ -53,8 +53,12 @@ export class Establishment {
     @JoinColumn({ name: 'type_id' })
     type: EstablishmentType
 
-    @ManyToOne(() => User, { eager: true })
-    @JoinColumn({ name: 'owner_id' })
+    @Column()
+    @ApiProperty()
+    ownerId: number
+
+    @ManyToOne(() => User, { eager: false })
+    @JoinColumn({ name: 'ownerId' })
     owner: User
 
 }
