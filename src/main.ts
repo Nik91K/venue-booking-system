@@ -8,7 +8,7 @@ async function bootstrap() {
   
   app.enableCors(false)
   
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
   const config = new DocumentBuilder()
    .setTitle('My REST API') 
    .setDescription('The API description')

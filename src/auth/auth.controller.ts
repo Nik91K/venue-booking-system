@@ -71,7 +71,7 @@ export class AuthController {
   }
 
   @Get('users/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiOkResponse({ description: 'User retrieved successfully' })

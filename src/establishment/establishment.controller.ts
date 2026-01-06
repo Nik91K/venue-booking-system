@@ -7,9 +7,9 @@ import { Establishment } from './entities/establishment.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from 'src/users/entities/user.entity';
 import { RolesGuard, JwtAuthGuard } from 'src/auth/jwt.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { multerOptions } from './file-upload.interceptor';
+import { Query } from '@nestjs/common';
+import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
+import { PageDto } from 'src/pagination/dto/page.dto';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
 
 
@@ -32,9 +32,9 @@ export class EstablishmentController {
 
   @Get()
   @ApiOperation({ summary: 'Get all establishments' })
-  @ApiOkResponse({ description: 'List of all establishments', type: [Establishment] })
-  getAllEstablishments() {
-    return this.establishmentService.getAllEstablishments();
+  @ApiOkResponse({ description: 'List of all establishments', type: PageDto })
+  getAllEstablishments(@Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<Establishment>> {
+    return this.establishmentService.getAllEstablishments(pageOptionsDto);
   }
 
   @Get(':id')

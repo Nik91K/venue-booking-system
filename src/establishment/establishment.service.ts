@@ -7,6 +7,9 @@ import { Repository } from 'typeorm';
 import { Feature } from 'src/features/entities/feature.entity';
 import { EstablishmentType } from 'src/establishment-type/entities/establishment-type.entity';
 import { User } from 'src/users/entities/user.entity';
+import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
+import { PageDto } from 'src/pagination/dto/page.dto';
+import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
 
 @Injectable()
 export class EstablishmentService {
@@ -47,12 +50,22 @@ export class EstablishmentService {
 
   }
 
-  async getAllEstablishments(): Promise<Establishment[]> {
-    const establishments = await this.establishmentRepository.find({
-      relations: ['type', 'features', 'comments'],
-    });
+  async getAllEstablishments(pageOptionsDto: PageOptionsDto): Promise<PageDto<Establishment>> {
+    const queryBuilder = this.establishmentRepository
+      .createQueryBuilder('establishment')
+      .leftJoinAndSelect('establishment.type', 'type')
+      .leftJoinAndSelect('establishment.features', 'features')
+      .leftJoinAndSelect('establishment.comments', 'comments')
+      .orderBy('establishment.id', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take)
 
-    return establishments;
+    const itemCount = await queryBuilder.getCount()
+    const { entities } = await queryBuilder.getRawAndEntities()
+
+    const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount })
+
+    return new PageDto(entities, pageMetaDto)
   }
 
   async getEstablishmentById (id: number): Promise<Establishment> {
