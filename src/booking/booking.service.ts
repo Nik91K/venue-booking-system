@@ -32,17 +32,22 @@ export class BookingService {
       throw new NotFoundException('Establishment not found')
     }
 
-    const time = new Date(`${createBookingDto.bookingDate}T${createBookingDto.bookingTime}`)
+    function addHoursToTime(time: string, hours: number): string {
+      const [h, m] = time.split(':').map(Number)
+      const date = new Date(1970, 0, 1, h, m)
+      date.setHours(date.getHours() + hours)
+      return date.toTimeString().slice(0, 5)
+    }
 
-    const oneHourBefore = new Date(time.getTime() - 60 * 60 * 1000)
-    const oneHourAfter = new Date(time.getTime() + 60 * 60 * 1000)
+    const timeFrom = addHoursToTime(createBookingDto.bookingTime, -1)
+    const timeTo = addHoursToTime(createBookingDto.bookingTime, 1)
 
     const seatsRequested = await this.bookingRepository
       .createQueryBuilder('booking')
       .select('SUM(booking.numberOfGuests)', 'sum')
       .where('booking.establishmentId = :establishmentId', { establishmentId: createBookingDto.establishment }) 
       .andWhere('booking.bookingDate = :bookingDate', { bookingDate: createBookingDto.bookingDate })
-      .andWhere('booking.bookingTime BETWEEN :oneHourBefore AND :oneHourAfter', { oneHourBefore, oneHourAfter })
+      .andWhere('booking.bookingTime BETWEEN :from AND :to',{ from: timeFrom, to: timeTo })
       .andWhere('booking.status = :status', { status: BookingStatus.CONFIRMED })
       .getRawOne()
 
