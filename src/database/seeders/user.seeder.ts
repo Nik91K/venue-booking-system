@@ -14,9 +14,24 @@ export class UserSeeder {
   ) {}
 
   async seedData(count: number = 10) {
-    const users: User[] = []
+  const users: User[] = []
 
-    for (let i = 0; i < count; i++) {
+  const adminAvatarSeed = generateAvatarSeed()
+  const adminAvatarUrl = generateAvatarUrl(adminAvatarSeed)
+
+  const admin = this.userRepository.create({
+    name: 'Admin User',
+    email: 'admin@example.com',
+    password: await bcrypt.hash('AdminPassword1', 10),
+    phoneNumber: '+380900000000',
+    avatarSeed: adminAvatarSeed,
+    avatarUrl: adminAvatarUrl,
+    role: UserRole.SUPER_ADMIN,
+  })
+
+    users.push(admin)
+
+    for (let i = 1; i < count; i++) {
       const avatarSeed = generateAvatarSeed()
       const avatarUrl = generateAvatarUrl(avatarSeed)
 
@@ -25,8 +40,8 @@ export class UserSeeder {
         email: faker.internet.email(),
         password: await bcrypt.hash('MyPassword1', 10),
         phoneNumber: faker.phone.number(),
-        avatarSeed: avatarSeed,
-        avatarUrl: avatarUrl,
+        avatarSeed,
+        avatarUrl,
         role: faker.helpers.arrayElement([
           UserRole.USER,
           UserRole.MODERATOR,
@@ -39,4 +54,5 @@ export class UserSeeder {
 
     return await this.userRepository.save(users)
   }
+
 }

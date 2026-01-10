@@ -24,8 +24,4 @@ export class CreateAuthDto {
     @IsPhoneNumber()
     @ApiProperty({example: '+380966243760', description: 'Phone number'})
     phoneNumber:string
-
-    @IsEnum(UserRole)
-    @ApiProperty({example: UserRole.USER, description: "User role", enum: UserRole, default: UserRole.USER})
-    role: UserRole
 }

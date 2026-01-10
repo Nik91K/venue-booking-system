@@ -23,6 +23,10 @@ export class Establishment {
     @Column({ type: "int", default: 0})
     totalSeats: number
 
+    @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
+    rating: number
+
+
     @Column({ type: "text", nullable: true })
     coverPhoto?: string
 

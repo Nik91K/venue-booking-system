@@ -20,7 +20,7 @@ export class MainSeeder {
     console.log(`Created ${establishmentType.length} establishment types`)
     const establishments = await this.establishmentSeeder.seedData(100);
     console.log(`Created ${establishments.length} establishments`)
-    const comments = await this.commentSeeder.seedData(100);
+    const comments = await this.commentSeeder.seedData(200);
     console.log(`Created ${comments.length} comments`)
   }
 

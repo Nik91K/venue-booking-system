@@ -23,7 +23,7 @@ export class CreateEstablishmentDto {
         example: "Calm and comfortable establishment",
         description: "Some description"
     })
-    description?: string
+    description: string
 
     @IsNumber()
     @Min(1)

@@ -18,6 +18,29 @@ export class CommentService {
     private userRepository: Repository<User>,
   ){}
 
+  private async updateEstablishmentRating (establishmentId: number) {
+    const establishment = await this.establishmentRepository.findOne({
+      where: { id: establishmentId },
+      relations: ['comments']
+    })
+
+    if (!establishment) {
+      throw new NotFoundException(`Establishment ${establishmentId} not found`);
+    }
+
+    const comments = establishment.comments
+
+    if (comments.length == 0) {
+      establishment.rating = 0;
+    } else {
+      const commentRatingSum = comments.reduce((accumulator, comment) => accumulator + comment.rating, 0)
+      establishment.rating = parseFloat((commentRatingSum / comments.length).toFixed(2))
+    }
+    
+    await this.establishmentRepository.save(establishment)
+    return establishment.rating
+  }
+
   async create(createCommentDto: CreateCommentDto, userId: number) {
     const { establishmentId, ...data } = createCommentDto;
     
@@ -38,7 +61,9 @@ export class CommentService {
       user
     })
 
-    return this.commentRepository.save(comment)
+    const savedComment = await this.commentRepository.save(comment)
+    await this.updateEstablishmentRating(establishmentId)
+    return savedComment
   }
 
   async findAllComments() {
@@ -54,18 +79,35 @@ export class CommentService {
   }
 
   async update(id: number, updateCreateCommentDto: UpdateCommentDto) {
-    const comment = await this.commentRepository.findOneBy({id});
+   const comment = await this.commentRepository.findOne({
+      where: { id },
+      relations: ['establishment'],
+    })
 
     if(!comment)
       throw new NotFoundException(`Comment ${id} invalid`)
 
     this.commentRepository.merge(comment, updateCreateCommentDto)
-    return this.commentRepository.save(comment)
+    const savedComment = await this.commentRepository.save(comment)
+
+    await this.updateEstablishmentRating(comment.establishment.id)
+    return savedComment
   }
 
   async remove(id: number) {
-    const result = await this.commentRepository.delete(id)
-    return result
+    const comment = await this.commentRepository.findOne({
+      where: { id },
+      relations: ['establishment'],
+    });
+
+    if (!comment) throw new NotFoundException(`Comment ${id} not found`);
+
+    const establishmentId = comment.establishment.id;
+    await this.commentRepository.delete(id);
+
+    await this.updateEstablishmentRating(establishmentId);
+
+    return { deleted: true };
   }
 
 }

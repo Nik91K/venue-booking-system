@@ -28,7 +28,7 @@ export class AuthService {
     const avatarUrl = generateAvatarUrl(avatarSeed)
 
     const hash = await bcrypt.hash(dto.password, 10)
-    const user = this.userRepo.create({ ...dto, password: hash, avatarUrl, avatarSeed });
+    const user = this.userRepo.create({ ...dto, password: hash, avatarUrl, avatarSeed, role: UserRole.USER });
     await this.userRepo.save(user)
 
     const tokens = await this.getTokens(user.id, user.email, user.role)
