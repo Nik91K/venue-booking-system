@@ -7,12 +7,16 @@ import { Repository } from 'typeorm';
 import { Feature } from 'src/features/entities/feature.entity';
 import { EstablishmentType } from 'src/establishment-type/entities/establishment-type.entity';
 import { User } from 'src/users/entities/user.entity';
-import { PageOptionsDto } from 'src/pagination/dto/page-options.dto';
+import { PageOptionsDto, SortField } from 'src/pagination/dto/page-options.dto';
 import { PageDto } from 'src/pagination/dto/page.dto';
 import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
 
 @Injectable()
 export class EstablishmentService {
+
+  private readonly MINIMUM_COMMENTS = 2;
+  private readonly GLOBAL_AVERAGE_RATING = 1;
+
   constructor (
     @InjectRepository(Establishment)
     private establishmentRepository: Repository<Establishment>,
@@ -53,19 +57,81 @@ export class EstablishmentService {
   async getAllEstablishments(pageOptionsDto: PageOptionsDto): Promise<PageDto<Establishment>> {
     const queryBuilder = this.establishmentRepository
       .createQueryBuilder('establishment')
+      .select('establishment.id', 'id')
+      .addSelect('COUNT(comments.id)', 'commentsCount')
+      .addSelect('COALESCE(AVG(comments.rating), 0)', 'avgRating')
+      .addSelect(`
+        CASE 
+          WHEN COUNT(comments.id) = 0 THEN 0
+          ELSE (
+            (COUNT(comments.id)::float / (COUNT(comments.id) + :m)) * AVG(comments.rating)
+            +
+            (:m::float / (COUNT(comments.id) + :m)) * :C
+          )
+        END
+      `, 'weightedRating')
+      .leftJoin('establishment.comments', 'comments')
+      .setParameter('m', this.MINIMUM_COMMENTS)
+      .setParameter('C', this.GLOBAL_AVERAGE_RATING)
+      .groupBy('establishment.id');
+
+    if (pageOptionsDto.sortBy == SortField.WEIGHTED_RATING) {
+      queryBuilder.orderBy('"weightedRating"', pageOptionsDto.order)
+    } else if (pageOptionsDto.sortBy === SortField.COMMENTS_COUNT) {
+      queryBuilder.orderBy('"commentsCount"', pageOptionsDto.order)
+    } else if (pageOptionsDto.sortBy === SortField.AVG_RATING) {
+      queryBuilder.orderBy('"avgRating"', pageOptionsDto.order);
+    } else {
+      queryBuilder.orderBy('establishment.id', pageOptionsDto.order)
+    }
+
+    queryBuilder
+      .addOrderBy('establishment.id', 'ASC')
+      .offset(pageOptionsDto.skip)
+      .limit(pageOptionsDto.take);
+
+    const sortedResults = await queryBuilder.getRawMany();
+
+    if (sortedResults.length === 0) {
+      const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount: 0 });
+      return new PageDto([], pageMetaDto);
+    }
+
+    const establishmentIds = sortedResults.map(result => result.id);
+    const metricsMap = new Map(
+      sortedResults.map(result => [
+        result.id,
+        {
+          commentsCount: parseInt(result.commentsCount) || 0,
+          avgRating: parseFloat(result.avgRating) || 0,
+          weightedRating: parseFloat(result.weightedRating) || 0,
+        }
+      ])
+    );
+
+    const establishments = await this.establishmentRepository
+      .createQueryBuilder('establishment')
       .leftJoinAndSelect('establishment.type', 'type')
       .leftJoinAndSelect('establishment.features', 'features')
       .leftJoinAndSelect('establishment.comments', 'comments')
-      .orderBy('establishment.id', pageOptionsDto.order)
-      .skip(pageOptionsDto.skip)
-      .take(pageOptionsDto.take)
+      .whereInIds(establishmentIds)
+      .getMany();
 
-    const itemCount = await queryBuilder.getCount()
-    const { entities } = await queryBuilder.getRawAndEntities()
+    const orderedEstablishments = establishmentIds
+      .map(id => establishments.find(e => e.id === id))
+      .filter(e => e !== undefined);
+
+    const enhancedEstablishments = orderedEstablishments.map(establishment => ({
+      ...establishment,
+      ...metricsMap.get(establishment.id),
+    }));
+
+    const itemCount = await this.establishmentRepository
+      .createQueryBuilder('establishment')
+      .getCount();
 
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount })
-
-    return new PageDto(entities, pageMetaDto)
+    return new PageDto(enhancedEstablishments, pageMetaDto)
   }
 
   async getEstablishmentById (id: number): Promise<Establishment> {
