@@ -1,39 +1,42 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
-import { User, UserRole } from "src/users/entities/user.entity";
+import { User, UserRole } from 'src/users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { generateAvatarSeed, generateAvatarUrl } from "src/common/utils/avatar.util";
+import {
+  generateAvatarSeed,
+  generateAvatarUrl,
+} from 'src/common/utils/avatar.util';
 
 @Injectable()
 export class UserSeeder {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>
   ) {}
 
   async seedData(count: number = 10) {
-  const users: User[] = []
+    const users: User[] = [];
 
-  const adminAvatarSeed = generateAvatarSeed()
-  const adminAvatarUrl = generateAvatarUrl(adminAvatarSeed)
+    const adminAvatarSeed = generateAvatarSeed();
+    const adminAvatarUrl = generateAvatarUrl(adminAvatarSeed);
 
-  const admin = this.userRepository.create({
-    name: 'Admin User',
-    email: 'admin@example.com',
-    password: await bcrypt.hash('AdminPassword1', 10),
-    phoneNumber: '+380900000000',
-    avatarSeed: adminAvatarSeed,
-    avatarUrl: adminAvatarUrl,
-    role: UserRole.SUPER_ADMIN,
-  })
+    const admin = this.userRepository.create({
+      name: 'Admin User',
+      email: 'admin@example.com',
+      password: await bcrypt.hash('MyPassword1', 10),
+      phoneNumber: '+380900000000',
+      avatarSeed: adminAvatarSeed,
+      avatarUrl: adminAvatarUrl,
+      role: UserRole.SUPER_ADMIN,
+    });
 
-    users.push(admin)
+    users.push(admin);
 
     for (let i = 1; i < count; i++) {
-      const avatarSeed = generateAvatarSeed()
-      const avatarUrl = generateAvatarUrl(avatarSeed)
+      const avatarSeed = generateAvatarSeed();
+      const avatarUrl = generateAvatarUrl(avatarSeed);
 
       const user = this.userRepository.create({
         name: faker.person.fullName(),
@@ -45,14 +48,13 @@ export class UserSeeder {
         role: faker.helpers.arrayElement([
           UserRole.USER,
           UserRole.MODERATOR,
-          UserRole.OWNER
-        ])
-      })
+          UserRole.OWNER,
+        ]),
+      });
 
-      users.push(user)
+      users.push(user);
     }
 
-    return await this.userRepository.save(users)
+    return await this.userRepository.save(users);
   }
-
 }
