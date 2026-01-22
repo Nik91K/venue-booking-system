@@ -1,9 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../../app.module';
-import { MainSeeder } from './main.seeder';
+
+import { MainSeeder } from '@/database/seeders/main.seeder';
+import { SeederAppModule } from '@/database/seeders/seeder-app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(AppModule);
+  const app = await NestFactory.createApplicationContext(SeederAppModule);
   const seeder = app.get(MainSeeder);
 
   try {

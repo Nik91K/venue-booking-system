@@ -1,13 +1,13 @@
+import { faker } from '@faker-js/faker';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { faker } from '@faker-js/faker';
-import { User, UserRole } from 'src/users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import {
   generateAvatarSeed,
   generateAvatarUrl,
 } from 'src/common/utils/avatar.util';
+import { User, UserRole } from 'src/users/entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserSeeder {
@@ -16,45 +16,45 @@ export class UserSeeder {
     private readonly userRepository: Repository<User>
   ) {}
 
-  async seedData(count: number = 10) {
+  async seedData(counts?: {
+    user?: number;
+    moderator?: number;
+    owner?: number;
+  }) {
+    const defaultCounts = {
+      user: counts?.user ?? 3,
+      moderator: counts?.moderator ?? 3,
+      owner: counts?.owner ?? 2,
+    };
     const users: User[] = [];
 
-    const adminAvatarSeed = generateAvatarSeed();
-    const adminAvatarUrl = generateAvatarUrl(adminAvatarSeed);
-
-    const admin = this.userRepository.create({
-      name: 'Admin User',
-      email: 'admin@example.com',
-      password: await bcrypt.hash('MyPassword1', 10),
-      phoneNumber: '+380900000000',
-      avatarSeed: adminAvatarSeed,
-      avatarUrl: adminAvatarUrl,
-      role: UserRole.SUPER_ADMIN,
-    });
-
-    users.push(admin);
-
-    for (let i = 1; i < count; i++) {
-      const avatarSeed = generateAvatarSeed();
-      const avatarUrl = generateAvatarUrl(avatarSeed);
-
-      const user = this.userRepository.create({
-        name: faker.person.fullName(),
-        email: faker.internet.email(),
-        password: await bcrypt.hash('MyPassword1', 10),
-        phoneNumber: faker.phone.number(),
-        avatarSeed,
-        avatarUrl,
-        role: faker.helpers.arrayElement([
-          UserRole.USER,
-          UserRole.MODERATOR,
-          UserRole.OWNER,
-        ]),
-      });
-
-      users.push(user);
+    for (let i = 0; i < defaultCounts.user; i++) {
+      users.push(await this.createUser(UserRole.USER));
     }
 
-    return await this.userRepository.save(users);
+    for (let i = 0; i < defaultCounts.moderator; i++) {
+      users.push(await this.createUser(UserRole.MODERATOR));
+    }
+
+    for (let i = 0; i < defaultCounts.owner; i++) {
+      users.push(await this.createUser(UserRole.OWNER));
+    }
+
+    return this.userRepository.save(users);
+  }
+
+  private async createUser(role: UserRole) {
+    const avatarSeed = generateAvatarSeed();
+    const avatarUrl = generateAvatarUrl(avatarSeed);
+
+    return this.userRepository.create({
+      name: faker.person.fullName(),
+      email: faker.internet.email(),
+      password: await bcrypt.hash('MyPassword1', 10),
+      phoneNumber: faker.phone.number(),
+      avatarSeed,
+      avatarUrl,
+      role,
+    });
   }
 }
