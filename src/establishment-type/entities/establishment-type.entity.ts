@@ -1,27 +1,20 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Establishment } from "src/establishment/entities/establishment.entity";
+import { ApiProperty } from '@nestjs/swagger';
+import { Establishment } from 'src/establishment/entities/establishment.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class EstablishmentType {
   @PrimaryGeneratedColumn()
   @ApiProperty()
-  id: number
+  id: number;
 
-  @Column({type: "text" })
+  @Column({ type: 'text' })
   @ApiProperty({
-    example: "Restaurant",
-    description: "Name of establishment type"
+    example: 'Restaurant',
+    description: 'Name of establishment type',
   })
-  name: string
+  name: string;
 
-  @Column({ type: "text", nullable: true })
-  @ApiProperty({
-    example: "https://example.com",
-    description: "URL icons for establishment type"
-  })
-  image?: string
-
-  @OneToMany(() => Establishment, (establishment) => establishment.type)
-  establishment: Establishment[]
+  @OneToMany(() => Establishment, establishment => establishment.type)
+  establishment: Establishment[];
 }

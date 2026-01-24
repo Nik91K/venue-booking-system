@@ -28,30 +28,54 @@ export class UserSeeder {
     };
     const users: User[] = [];
 
+    const uniqueEmails = new Set<string>();
+    const uniquePhones = new Set<string>();
+
     for (let i = 0; i < defaultCounts.user; i++) {
-      users.push(await this.createUser(UserRole.USER));
+      users.push(
+        await this.createUser(UserRole.USER, uniqueEmails, uniquePhones)
+      );
     }
 
     for (let i = 0; i < defaultCounts.moderator; i++) {
-      users.push(await this.createUser(UserRole.MODERATOR));
+      users.push(
+        await this.createUser(UserRole.MODERATOR, uniqueEmails, uniquePhones)
+      );
     }
 
     for (let i = 0; i < defaultCounts.owner; i++) {
-      users.push(await this.createUser(UserRole.OWNER));
+      users.push(
+        await this.createUser(UserRole.OWNER, uniqueEmails, uniquePhones)
+      );
     }
 
     return this.userRepository.save(users);
   }
 
-  private async createUser(role: UserRole) {
+  private async createUser(
+    role: UserRole,
+    uniqueEmails: Set<string>,
+    uniquePhones: Set<string>
+  ): Promise<User> {
     const avatarSeed = generateAvatarSeed();
     const avatarUrl = generateAvatarUrl(avatarSeed);
 
+    let email: string = faker.internet.email();
+    let phoneNumber: string = faker.phone.number({ style: 'international' });
+
+    while (uniqueEmails.has(email)) {
+      email = faker.internet.email();
+    }
+
+    while (uniquePhones.has(phoneNumber)) {
+      phoneNumber = faker.phone.number({ style: 'international' });
+    }
+
     return this.userRepository.create({
       name: faker.person.fullName(),
-      email: faker.internet.email(),
+      email,
       password: await bcrypt.hash('MyPassword1', 10),
-      phoneNumber: faker.phone.number(),
+      phoneNumber,
       avatarSeed,
       avatarUrl,
       role,

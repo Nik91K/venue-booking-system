@@ -5,12 +5,12 @@ import { Establishment } from 'src/establishment/entities/establishment.entity';
 import { EstablishmentType } from 'src/establishment-type/entities/establishment-type.entity';
 import { User } from 'src/users/entities/user.entity';
 
-import { AdminSeeder } from './admin.seeder';
-import { CommentSeeder } from './comment.seeder';
-import { EstablishmentSeeder } from './establishment.seeder';
-import { EstablishmentTypeSeeder } from './establishmentType.seeder';
 import { MainSeeder } from './main.seeder';
-import { UserSeeder } from './user.seeder';
+import { AdminSeeder } from './seedersData/admin.seeder';
+import { CommentSeeder } from './seedersData/comment.seeder';
+import { EstablishmentSeeder } from './seedersData/establishment.seeder';
+import { EstablishmentTypeSeeder } from './seedersData/establishmentType.seeder';
+import { UserSeeder } from './seedersData/user.seeder';
 
 @Module({
   imports: [

@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
-import { AdminSeeder } from './admin.seeder';
-import { CommentSeeder } from './comment.seeder';
-import { EstablishmentSeeder } from './establishment.seeder';
-import { EstablishmentTypeSeeder } from './establishmentType.seeder';
-import { UserSeeder } from './user.seeder';
+import { AdminSeeder } from './seedersData/admin.seeder';
+import { CommentSeeder } from './seedersData/comment.seeder';
+import { EstablishmentSeeder } from './seedersData/establishment.seeder';
+import { EstablishmentTypeSeeder } from './seedersData/establishmentType.seeder';
+import { UserSeeder } from './seedersData/user.seeder';
 
 @Injectable()
 export class MainSeeder {
@@ -23,18 +23,14 @@ export class MainSeeder {
   async run() {
     await this.dataSource.dropDatabase();
     await this.dataSource.synchronize();
-    const users = await this.userSeeder.seedData({
+    await this.userSeeder.seedData({
       user: 4,
       moderator: 2,
       owner: 2,
     });
-    console.log(`Created ${users.length} users`);
     await this.adminSeeder.seedAdmin();
-    const establishmentType = await this.establishmentTypeSeeder.seedData(3);
-    console.log(`Created ${establishmentType.length} establishment types`);
-    const establishments = await this.establishmentSeeder.seedData(100);
-    console.log(`Created ${establishments.length} establishments`);
-    const comments = await this.commentSeeder.seedData(200);
-    console.log(`Created ${comments.length} comments`);
+    await this.establishmentTypeSeeder.seedData(3);
+    await this.establishmentSeeder.seedData(100);
+    await this.commentSeeder.seedData(200);
   }
 }

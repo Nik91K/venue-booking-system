@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
 import { faker } from '@faker-js/faker';
-import { Comment } from "src/comment/entities/comment.entity";
-import { User } from "src/users/entities/user.entity";
-import { Establishment } from "src/establishment/entities/establishment.entity";
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Comment } from 'src/comment/entities/comment.entity';
+import { Establishment } from 'src/establishment/entities/establishment.entity';
+import { User } from 'src/users/entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class CommentSeeder {
@@ -14,7 +14,7 @@ export class CommentSeeder {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Establishment)
-    private readonly establishmentRepository: Repository<Establishment>,
+    private readonly establishmentRepository: Repository<Establishment>
   ) {}
 
   async seedData(count: number = 20) {
@@ -25,19 +25,19 @@ export class CommentSeeder {
       throw new Error('Please seed users and establishments first');
     }
 
-    const comments: Comment[] = []
+    const comments: Comment[] = [];
 
     for (let i = 0; i < count; i++) {
       const comment = this.commentRepository.create({
         text: faker.lorem.paragraph(),
-        rating: faker.number.int({min: 1, max: 5}),
+        rating: faker.number.int({ min: 1, max: 5 }),
         user: faker.helpers.arrayElement(users),
-        establishment: faker.helpers.arrayElement(establishments)
-      })
+        establishment: faker.helpers.arrayElement(establishments),
+      });
 
-      comments.push(comment)
+      comments.push(comment);
     }
 
-    return await this.commentRepository.save(comments)
+    await this.commentRepository.save(comments);
   }
 }
