@@ -1,7 +1,8 @@
-import { Booking } from '../../booking/entities/booking.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Comment } from 'src/comment/entities/comment.entity';
-import { RefreshToken } from 'src/auth/entities/refresh-token.entity';
+
+import { RefreshToken } from '@/auth/entities/refresh-token.entity';
+import { Booking } from '@/booking/entities/booking.entity';
+import { Comment } from '@/comment/entities/comment.entity';
 
 export enum UserRole {
   USER = 'USER',
@@ -39,12 +40,15 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
-  @OneToMany(() => Booking, (booking) => booking.establishment)
+  @OneToMany(() => Booking, booking => booking.establishment)
   bookings: Booking[];
 
-  @OneToMany(() => Comment, (comment) => comment.user, { cascade: true })
+  @OneToMany(() => Comment, comment => comment.user, { cascade: true })
   comments: Comment[];
 
-  @OneToMany(() => RefreshToken, (token) => token.user, { cascade: true })
+  @OneToMany(() => RefreshToken, token => token.user, { cascade: true })
   refreshToken: RefreshToken[];
+
+  @Column('int', { array: true, default: () => '{}' })
+  favorites: number[];
 }
