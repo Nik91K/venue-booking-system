@@ -49,6 +49,6 @@ export class User {
   @OneToMany(() => RefreshToken, token => token.user, { cascade: true })
   refreshToken: RefreshToken[];
 
-  @Column('int', { array: true, default: () => '{}' })
+  @Column('int', { array: true, default: [] })
   favorites: number[];
 }

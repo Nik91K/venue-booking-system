@@ -143,4 +143,15 @@ export class EstablishmentController {
   addFavorite(@Param('id') id: string, @CurrentUser() user: User) {
     return this.establishmentService.addFavorite(user.id, +id);
   }
+
+  @Delete(':id/favorite')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remove establishment from user favorites' })
+  @ApiOkResponse({ description: 'Establishment removed from favorites' })
+  @ApiBadRequestResponse({ description: 'Invalid id' })
+  @ApiNotFoundResponse({ description: 'Establishment not found' })
+  removeFavorite(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.establishmentService.removeFavorite(user.id, +id);
+  }
 }

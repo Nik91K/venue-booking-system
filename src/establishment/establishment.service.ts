@@ -280,4 +280,16 @@ export class EstablishmentService {
 
     return user.favorites;
   }
+
+  async removeFavorite(userId: number, establishmentId: number) {
+    const user = await this.userRepository.findOneBy({ id: userId });
+
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    user.favorites = user.favorites.filter(id => id !== establishmentId);
+
+    await this.userRepository.save(user);
+  }
 }

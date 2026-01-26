@@ -4,19 +4,20 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { LoginDto } from './dto/login.dto';
-import { User, UserRole } from '../users/entities/user.entity';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { RefreshToken } from './entities/refresh-token.entity';
+import { Repository } from 'typeorm';
+
+import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
+import { LoginDto } from '@/auth/dto/login.dto';
+import { UpdateAuthDto } from '@/auth/dto/update-auth.dto';
+import { RefreshToken } from '@/auth/entities/refresh-token.entity';
 import {
   generateAvatarSeed,
   generateAvatarUrl,
-} from 'src/common/utils/avatar.util';
+} from '@/common/utils/avatar.util';
+import { User, UserRole } from '@/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -67,21 +68,18 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: parseInt(process.env.JWT_ACCESS_EXPIRES_IN ?? '3600', 10),
+      expiresIn: Number(process.env.JWT_ACCESS_EXPIRES_IN) || 900,
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: parseInt(process.env.JWT_REFRESH_EXPIRES_IN ?? '604800', 10),
+      expiresIn: Number(process.env.JWT_REFRESH_EXPIRES_IN) || 604800,
     });
 
     const hashedToken = await bcrypt.hash(refreshToken, 10);
 
     const expiresAt = new Date();
-    const expiresInDays = parseInt(
-      process.env.JWT_REFRESH_EXPIRES_IN ?? '7',
-      10
-    );
+    const expiresInDays = Number(process.env.JWT_REFRESH_EXPIRES_IN) || 604800;
     expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
     await this.refreshTokenRepo.delete({ user: { id: userId } });
