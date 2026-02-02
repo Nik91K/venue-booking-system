@@ -1,22 +1,23 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../users/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from './strategy/jwt.strategy';
-import { RolesGuard, JwtAuthGuard } from './jwt.guard';
-import { RefreshToken } from './entities/refresh-token.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AuthController } from '@/auth/auth.controller';
+import { AuthService } from '@/auth/auth.service';
+import { RefreshToken } from '@/auth/entities/refresh-token.entity';
+import { JwtStrategy } from '@/auth/strategy/jwt.strategy';
+import { RolesGuard, JwtAuthGuard } from '@/common/guard/jwt.guard';
+import { User } from '@/users/entities/user.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, RefreshToken]),
     PassportModule,
-    JwtModule.register({})
+    JwtModule.register({}),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, RolesGuard, JwtAuthGuard],
-  exports: [JwtModule, AuthService]
+  exports: [JwtModule, AuthService],
 })
 export class AuthModule {}

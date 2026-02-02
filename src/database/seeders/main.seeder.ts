@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
-import { AdminSeeder } from './seedersData/admin.seeder';
-import { CommentSeeder } from './seedersData/comment.seeder';
-import { EstablishmentSeeder } from './seedersData/establishment.seeder';
-import { EstablishmentTypeSeeder } from './seedersData/establishmentType.seeder';
-import { UserSeeder } from './seedersData/user.seeder';
+import { AdminSeeder } from '@/database/seeders/seedersData/admin.seeder';
+import { CommentSeeder } from '@/database/seeders/seedersData/comment.seeder';
+import { EstablishmentSeeder } from '@/database/seeders/seedersData/establishment.seeder';
+import { EstablishmentTypeSeeder } from '@/database/seeders/seedersData/establishmentType.seeder';
+import { UserSeeder } from '@/database/seeders/seedersData/user.seeder';
 
 @Injectable()
 export class MainSeeder {

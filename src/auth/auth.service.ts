@@ -11,7 +11,6 @@ import { Repository } from 'typeorm';
 
 import { CreateAuthDto } from '@/auth/dto/create-auth.dto';
 import { LoginDto } from '@/auth/dto/login.dto';
-import { UpdateAuthDto } from '@/auth/dto/update-auth.dto';
 import { RefreshToken } from '@/auth/entities/refresh-token.entity';
 import {
   generateAvatarSeed,
@@ -104,73 +103,6 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
-  }
-
-  async findAll() {
-    const users = await this.userRepo.find({
-      relations: ['establishment', 'bookings'],
-    });
-    return users.map(user => {
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
-  }
-
-  async getCurrentUser(userId: number) {
-    const user = await this.userRepo.findOne({
-      where: { id: userId },
-      relations: ['bookings', 'comments'],
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  }
-
-  async getUserById(id: number) {
-    const user = await this.userRepo.findOne({
-      where: { id },
-      relations: ['comments'],
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User ${id} not found`);
-    }
-
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  }
-
-  async updateCurrentUser(userId: number, dto: UpdateAuthDto) {
-    const user = await this.userRepo.findOneBy({ id: userId });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (dto.password) {
-      dto.password = await bcrypt.hash(dto.password, 10);
-    }
-
-    Object.assign(user, dto);
-    const updatedUser = await this.userRepo.save(user);
-
-    const { password, ...userWithoutPassword } = updatedUser;
-    return userWithoutPassword;
-  }
-
-  async update(id: number, dto: UpdateAuthDto) {
-    const user = await this.userRepo.findOneBy({ id });
-    if (!user) return null;
-
-    if (dto.password) {
-      dto.password = await bcrypt.hash(dto.password, 10);
-    }
-
-    Object.assign(user, dto);
-    return this.userRepo.save(user);
   }
 
   async deleteUser(id: number) {

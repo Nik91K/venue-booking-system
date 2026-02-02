@@ -23,9 +23,9 @@ import { CreateEstablishmentDto } from './dto/create-establishment.dto';
 import { UpdateEstablishmentDto } from './dto/update-establishment.dto';
 import { EstablishmentService } from './establishment.service';
 
-import { Roles } from '@/auth/decorators/roles.decorator';
-import { CurrentUser } from '@/auth/decorators/user.decorator';
-import { RolesGuard, JwtAuthGuard } from '@/auth/jwt.guard';
+import { Roles } from '@/common/decorator/roles.decorator';
+import { CurrentUser } from '@/common/decorator/user.decorator';
+import { RolesGuard, JwtAuthGuard } from '@/common/guard/jwt.guard';
 import { Establishment } from '@/establishment/entities/establishment.entity';
 import { PageOptionsDto } from '@/pagination/dto/page-options.dto';
 import { PageDto } from '@/pagination/dto/page.dto';
@@ -58,6 +58,21 @@ export class EstablishmentController {
     @Query() pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<Establishment>> {
     return this.establishmentService.getAllEstablishments(pageOptionsDto);
+  }
+
+  @Get('favorites')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get all favorite establishments for the current user',
+  })
+  @ApiOkResponse({
+    description: 'Favorite establishments retrieved successfully',
+  })
+  @ApiBadRequestResponse({ description: 'Invalid id' })
+  @ApiNotFoundResponse({ description: 'Favorites not found' })
+  getAllFavorites(@CurrentUser() user: User) {
+    return this.establishmentService.getAllFavorites(user.id);
   }
 
   @Get(':id')

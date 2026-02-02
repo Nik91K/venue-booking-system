@@ -1,16 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
-import { EstablishmentTypeService } from './establishment-type.service';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UserRole } from 'src/users/entities/user.entity';
+
 import { CreateEstablishmentTypeDto } from './dto/create-establishment-type.dto';
 import { UpdateEstablishmentTypeDto } from './dto/update-establishment-type.dto';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { UserRole } from 'src/users/entities/user.entity';
-import { JwtAuthGuard, RolesGuard } from 'src/auth/jwt.guard';
+import { EstablishmentTypeService } from './establishment-type.service';
+
+import { Roles } from '@/common/decorator/roles.decorator';
+import { JwtAuthGuard, RolesGuard } from '@/common/guard/jwt.guard';
 
 @ApiTags('establishment-types')
 @Controller('establishment-type')
 export class EstablishmentTypeController {
-  constructor(private readonly establishmentTypeService: EstablishmentTypeService) {}
+  constructor(
+    private readonly establishmentTypeService: EstablishmentTypeService
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -38,8 +51,14 @@ export class EstablishmentTypeController {
   @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update establishment type' })
-  update(@Param('id') id: string, @Body() updateEstablishmentTypeDto: UpdateEstablishmentTypeDto) {
-    return this.establishmentTypeService.update(+id, updateEstablishmentTypeDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateEstablishmentTypeDto: UpdateEstablishmentTypeDto
+  ) {
+    return this.establishmentTypeService.update(
+      +id,
+      updateEstablishmentTypeDto
+    );
   }
 
   @Delete(':id')

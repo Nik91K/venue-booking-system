@@ -10,7 +10,7 @@ import { PageMetaDto } from 'src/pagination/dto/page-meta.dto';
 import { PageOptionsDto, SortField } from 'src/pagination/dto/page-options.dto';
 import { PageDto } from 'src/pagination/dto/page.dto';
 import { User } from 'src/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { CreateEstablishmentDto } from './dto/create-establishment.dto';
 import { UpdateEstablishmentDto } from './dto/update-establishment.dto';
@@ -291,5 +291,23 @@ export class EstablishmentService {
     user.favorites = user.favorites.filter(id => id !== establishmentId);
 
     await this.userRepository.save(user);
+  }
+
+  async getAllFavorites(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    if (!user.favorites || user.favorites.length === 0) {
+      return [];
+    }
+
+    return this.establishmentRepository.find({
+      where: { id: In(user.favorites) },
+    });
   }
 }

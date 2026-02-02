@@ -1,7 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
-import { Order } from '../constants/order';
+
+import { Order } from '@/pagination/constants/order';
 
 export enum SortField {
   WEIGHTED_RATING = 'weightedRating',

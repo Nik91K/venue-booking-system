@@ -1,14 +1,29 @@
-import { 
-  Controller, Get, Post, Body, Patch, Param, Delete,
-  UseInterceptors, UploadedFile
+import { extname } from 'path';
+
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiConsumes,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
-import { UpdateFeatureDto } from './dto/update-feature.dto';
-import { CreateFeatureDto } from './dto/create-feature.dto';
-import { FeaturesService } from './features.service';
-import { ApiConsumes, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+
+import { CreateFeatureDto } from '@/features/dto/create-feature.dto';
+import { UpdateFeatureDto } from '@/features/dto/update-feature.dto';
+import { FeaturesService } from '@/features/features.service';
 
 @ApiTags('features')
 @Controller('features')
@@ -16,15 +31,18 @@ export class FeaturesController {
   constructor(private readonly featuresService: FeaturesService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('image', {
-    storage: diskStorage({
-      destination: './uploads/features',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, `feature-${uniqueSuffix}${extname(file.originalname)}`);
-      },
-    }),
-  }))
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads/features',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `feature-${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+    })
+  )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a new feature with optional image' })
   @ApiBody({
@@ -33,15 +51,15 @@ export class FeaturesController {
       type: 'object',
       required: ['name'],
       properties: {
-        name: { 
-          type: 'string', 
+        name: {
+          type: 'string',
           example: 'WiFi',
-          description: 'Name of the feature'
+          description: 'Name of the feature',
         },
         image: {
           type: 'string',
           format: 'binary',
-          description: 'Feature icon image (optional)'
+          description: 'Feature icon image (optional)',
         },
       },
     },
@@ -50,7 +68,7 @@ export class FeaturesController {
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   create(
     @Body() createFeatureDto: CreateFeatureDto,
-    @UploadedFile() image?: Express.Multer.File,
+    @UploadedFile() image?: Express.Multer.File
   ) {
     return this.featuresService.create(createFeatureDto, image);
   }
@@ -71,15 +89,18 @@ export class FeaturesController {
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('image', {
-    storage: diskStorage({
-      destination: './uploads/features',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, `feature-${uniqueSuffix}${extname(file.originalname)}`);
-      },
-    }),
-  }))
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads/features',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `feature-${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+    })
+  )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Update feature' })
   @ApiBody({
@@ -87,15 +108,15 @@ export class FeaturesController {
     schema: {
       type: 'object',
       properties: {
-        name: { 
-          type: 'string', 
+        name: {
+          type: 'string',
           example: 'WiFi',
-          description: 'Name of the feature (optional)'
+          description: 'Name of the feature (optional)',
         },
         image: {
           type: 'string',
           format: 'binary',
-          description: 'New feature icon image (optional)'
+          description: 'New feature icon image (optional)',
         },
       },
     },
@@ -105,7 +126,7 @@ export class FeaturesController {
   update(
     @Param('id') id: string,
     @Body() updateFeatureDto: UpdateFeatureDto,
-    @UploadedFile() image?: Express.Multer.File,
+    @UploadedFile() image?: Express.Multer.File
   ) {
     return this.featuresService.update(+id, updateFeatureDto, image);
   }
