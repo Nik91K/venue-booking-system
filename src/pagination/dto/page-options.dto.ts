@@ -14,12 +14,12 @@ export class PageOptionsDto {
   @ApiPropertyOptional({ enum: SortField, default: SortField.WEIGHTED_RATING })
   @IsEnum(SortField)
   @IsOptional()
-  readonly sortBy?: SortField = SortField.WEIGHTED_RATING;
+  readonly sortBy: SortField = SortField.WEIGHTED_RATING;
 
   @ApiPropertyOptional({ enum: Order, default: Order.ASC })
   @IsEnum(Order)
   @IsOptional()
-  readonly order?: Order = Order.DESC;
+  readonly order: Order = Order.DESC;
 
   @ApiPropertyOptional({
     minimum: 1,

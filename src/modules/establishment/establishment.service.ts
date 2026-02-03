@@ -10,11 +10,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Repository, SelectQueryBuilder } from 'typeorm';
 
 import { PageMetaDto } from '@/pagination/dto/page-meta.dto';
 import { PageOptionsDto, SortField } from '@/pagination/dto/page-options.dto';
 import { PageDto } from '@/pagination/dto/page.dto';
+
+// FIX: Type should extend Establishment
+type EstablishmentWithMetrics = Establishment & {
+  commentsCount: number;
+  avgRating: number;
+  weightedRating: number;
+};
 
 @Injectable()
 export class EstablishmentService {
@@ -61,12 +68,10 @@ export class EstablishmentService {
     return this.establishmentRepository.save(establishment);
   }
 
-  async getAllEstablishments(
-    pageOptionsDto: PageOptionsDto
-  ): Promise<PageDto<Establishment>> {
-    const queryBuilder = this.establishmentRepository
+  // Query builder to get establishments with their metrics
+  private getEstablishmentMetrics(): SelectQueryBuilder<Establishment> {
+    return this.establishmentRepository
       .createQueryBuilder('establishment')
-      .select('establishment.id', 'id')
       .addSelect('COUNT(comments.id)', 'commentsCount')
       .addSelect('COALESCE(AVG(comments.rating), 0)', 'avgRating')
       .addSelect(
@@ -85,62 +90,61 @@ export class EstablishmentService {
       .leftJoin('establishment.comments', 'comments')
       .setParameter('m', this.MINIMUM_COMMENTS)
       .setParameter('C', this.GLOBAL_AVERAGE_RATING)
-      .groupBy('establishment.id');
+      .leftJoinAndSelect('establishment.type', 'type')
+      .leftJoinAndSelect('establishment.features', 'features')
+      .groupBy('establishment.id')
+      .addGroupBy('type.id')
+      .addGroupBy('features.id');
+  }
 
-    if (pageOptionsDto.sortBy == SortField.WEIGHTED_RATING) {
-      queryBuilder.orderBy('"weightedRating"', pageOptionsDto.order);
-    } else if (pageOptionsDto.sortBy === SortField.COMMENTS_COUNT) {
-      queryBuilder.orderBy('"commentsCount"', pageOptionsDto.order);
-    } else if (pageOptionsDto.sortBy === SortField.AVG_RATING) {
-      queryBuilder.orderBy('"avgRating"', pageOptionsDto.order);
-    } else {
-      queryBuilder.orderBy('establishment.id', pageOptionsDto.order);
-    }
+  private applySorting(
+    queryBuilder: SelectQueryBuilder<Establishment>,
+    pageOptionsDto: PageOptionsDto
+  ): void {
+    // sorting
+    const sortColumn = {
+      [SortField.WEIGHTED_RATING]: '"weightedRating"',
+      [SortField.COMMENTS_COUNT]: '"commentsCount"',
+      [SortField.AVG_RATING]: '"avgRating"',
+    };
 
-    queryBuilder
-      .addOrderBy('establishment.id', 'ASC')
-      .offset(pageOptionsDto.skip)
-      .limit(pageOptionsDto.take);
+    const column = sortColumn[pageOptionsDto.sortBy];
+    queryBuilder.orderBy(column, pageOptionsDto.order);
+    queryBuilder.addOrderBy('establishment.id', 'ASC');
+  }
 
-    const sortedResults = await queryBuilder.getRawMany();
+  async getAllEstablishments(
+    pageOptionsDto: PageOptionsDto
+  ): Promise<PageDto<EstablishmentWithMetrics>> {
+    // Create the query with metrics
+    const queryBuilder = this.getEstablishmentMetrics();
 
-    if (sortedResults.length === 0) {
+    // Apply sorting / pagination
+    this.applySorting(queryBuilder, pageOptionsDto);
+    queryBuilder.offset(pageOptionsDto.skip).limit(pageOptionsDto.take);
+
+    // Get the results with all data
+    const results = await queryBuilder.getRawAndEntities();
+
+    if (results.entities.length === 0) {
       const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount: 0 });
       return new PageDto([], pageMetaDto);
     }
 
-    const establishmentIds = sortedResults.map(result => result.id);
-    const metricsMap = new Map(
-      sortedResults.map(result => [
-        result.id,
-        {
-          commentsCount: parseInt(result.commentsCount) || 0,
-          avgRating: parseFloat(result.avgRating) || 0,
-          weightedRating: parseFloat(result.weightedRating) || 0,
-        },
-      ])
-    );
+    // Map entities with their metrics
+    const enhancedEstablishments: EstablishmentWithMetrics[] =
+      results.entities.map((establishment, index) => {
+        const raw = results.raw[index];
+        return {
+          ...establishment,
+          commentsCount: parseInt(raw.commentsCount) || 0,
+          avgRating: parseFloat(raw.avgRating) || 0,
+          weightedRating: parseFloat(raw.weightedRating) || 0,
+        };
+      });
 
-    const establishments = await this.establishmentRepository
-      .createQueryBuilder('establishment')
-      .leftJoinAndSelect('establishment.type', 'type')
-      .leftJoinAndSelect('establishment.features', 'features')
-      .leftJoinAndSelect('establishment.comments', 'comments')
-      .whereInIds(establishmentIds)
-      .getMany();
-
-    const orderedEstablishments = establishmentIds
-      .map(id => establishments.find(e => e.id === id))
-      .filter(e => e !== undefined);
-
-    const enhancedEstablishments = orderedEstablishments.map(establishment => ({
-      ...establishment,
-      ...metricsMap.get(establishment.id),
-    }));
-
-    const itemCount = await this.establishmentRepository
-      .createQueryBuilder('establishment')
-      .getCount();
+    // Get total count for pagination
+    const itemCount = await this.establishmentRepository.count();
 
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
     return new PageDto(enhancedEstablishments, pageMetaDto);
@@ -166,7 +170,7 @@ export class EstablishmentService {
     });
 
     if (!establishment) {
-      throw new NotFoundException(`Establishment ${id} invalid`);
+      throw new NotFoundException(`Establishment ${id} not found`);
     }
 
     return establishment.comments;
@@ -183,7 +187,7 @@ export class EstablishmentService {
     });
 
     if (!establishment) {
-      throw new NotFoundException(`Establishment ${id} invalid`);
+      throw new NotFoundException(`Establishment ${id} not found`);
     }
 
     if (file) {
@@ -209,7 +213,10 @@ export class EstablishmentService {
 
   async remove(id: number) {
     const result = await this.establishmentRepository.delete(id);
-    return result;
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`Establishment ${id} not found`);
+    }
   }
 
   async addFeature(establishmentId: number, featureId: number) {
@@ -267,10 +274,16 @@ export class EstablishmentService {
   }
 
   async addFavorite(userId: number, establishmentId: number) {
-    const user = await this.userRepository.findOneBy({ id: userId });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
 
     if (!user) {
       throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    if (!user.favorites) {
+      user.favorites = [];
     }
 
     if (!user.favorites.includes(establishmentId)) {
@@ -282,10 +295,16 @@ export class EstablishmentService {
   }
 
   async removeFavorite(userId: number, establishmentId: number) {
-    const user = await this.userRepository.findOneBy({ id: userId });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
 
     if (!user) {
       throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    if (!user.favorites) {
+      user.favorites = [];
     }
 
     user.favorites = user.favorites.filter(id => id !== establishmentId);
