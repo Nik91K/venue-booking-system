@@ -1,10 +1,11 @@
 import { faker } from '@faker-js/faker';
+import { Establishment } from '@modules/establishment/entities/establishment.entity';
+import { User } from '@modules/users/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Comment } from 'src/comment/entities/comment.entity';
-import { Establishment } from 'src/establishment/entities/establishment.entity';
-import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
+
+import { Comment } from '@/modules/comment/entities/comment.entity';
 
 @Injectable()
 export class CommentSeeder {

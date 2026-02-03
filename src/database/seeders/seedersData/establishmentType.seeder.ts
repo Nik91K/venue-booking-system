@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EstablishmentType } from 'src/establishment-type/entities/establishment-type.entity';
 import { Repository } from 'typeorm';
 
 import { ESTABLISHMENT_TYPES } from '@/database/seeders/fixtures/establishment-types.fixture';
+import { EstablishmentType } from '@/modules/establishment-type/entities/establishment-type.entity';
 
 @Injectable()
 export class EstablishmentTypeSeeder {

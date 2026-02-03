@@ -1,4 +1,5 @@
 import { ROLES_KEY } from '@common/decorator/roles.decorator';
+import { UserRole } from '@modules/users/entities/user.entity';
 import {
   Injectable,
   CanActivate,
@@ -7,8 +8,6 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-
-import { UserRole } from '@/users/entities/user.entity';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {}

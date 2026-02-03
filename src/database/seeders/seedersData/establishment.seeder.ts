@@ -1,10 +1,11 @@
 import { faker } from '@faker-js/faker';
+import { Establishment } from '@modules/establishment/entities/establishment.entity';
+import { User, UserRole } from '@modules/users/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Establishment } from 'src/establishment/entities/establishment.entity';
-import { EstablishmentType } from 'src/establishment-type/entities/establishment-type.entity';
-import { User, UserRole } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
+
+import { EstablishmentType } from '@/modules/establishment-type/entities/establishment-type.entity';
 
 @Injectable()
 export class EstablishmentSeeder {

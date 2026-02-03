@@ -1,17 +1,16 @@
+import { AuthModule } from '@modules/auth/auth.module';
+import { BookingModule } from '@modules/booking/booking.module';
+import { EstablishmentModule } from '@modules/establishment/establishment.module';
+import { FeaturesModule } from '@modules/features/features.module';
+import { UsersModule } from '@modules/users/users.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 
-import { AuthModule } from '@/auth/auth.module';
-import { AvailabilityModule } from '@/availability/availability.module';
-import { BookingModule } from '@/booking/booking.module';
-import { CommentModule } from '@/comment/comment.module';
 import { databaseConfig } from '@/database/database.config';
 import { SeederModule } from '@/database/seeders/seeder.module';
-import { EstablishmentModule } from '@/establishment/establishment.module';
-import { EstablishmentTypeModule } from '@/establishment-type/establishment-type.module';
-import { FeaturesModule } from '@/features/features.module';
-import { UsersModule } from '@/users/users.module';
+import { CommentModule } from '@/modules/comment/comment.module';
+import { EstablishmentTypeModule } from '@/modules/establishment-type/establishment-type.module';
 
 @Module({
   imports: [
@@ -29,7 +28,6 @@ import { UsersModule } from '@/users/users.module';
     EstablishmentModule,
     CommentModule,
     AuthModule,
-    AvailabilityModule,
     BookingModule,
     UsersModule,
     FeaturesModule,
