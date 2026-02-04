@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
+import prompts from 'prompts';
 import { DataSource } from 'typeorm';
 
 import { AdminSeeder } from '@/database/seeders/seedersData/admin.seeder';
@@ -21,6 +22,20 @@ export class MainSeeder {
   ) {}
 
   async run() {
+    const { confirm } = await prompts({
+      type: 'confirm',
+      name: 'confirm',
+      message:
+        'WARNING: This action will delete all data in the database Continue?',
+      initial: false,
+    });
+
+    if (!confirm) {
+      console.log('Seeding aborted');
+      return;
+    }
+
+    console.log('Seeding started...');
     await this.dataSource.dropDatabase();
     await this.dataSource.synchronize();
     await this.userSeeder.seedData({

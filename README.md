@@ -1,102 +1,142 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Table Booking System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A full-featured table booking system for restaurants and establishments, allowing users to reserve tables, leave comments, and manage their bookings.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- Browse and search establishments
+- Reserve tables at restaurants
+- Leave reviews and comments
+- User authentication and profile management
+- Automated avatar generation using DiceBear API
+- Secure JWT-based authentication
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Prerequisites
 
-## Project setup
+- Node.js (v16 or higher)
+- npm or yarn
+- PostgreSQL (v12 or higher)
+
+## Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd <project-directory>
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+
+   Copy the example environment file and configure it
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` and fill in your configuration:
+
+   ```env
+   # Database Configuration
+   DB_TYPE=postgres
+   DB_HOST=localhost          # Your database host
+   DB_PORT=5432              # Your database port
+   DB_USERNAME=your_username # Your database username
+   DB_PASSWORD=your_password # Your database password
+   DB_DATABASE=booking_db    # Your database name
+
+   # JWT Configuration
+   JWT_ACCESS_SECRET=your_secure_access_secret_here
+   JWT_REFRESH_SECRET=your_secure_refresh_secret_here
+   JWT_ACCESS_EXPIRES_IN=15m
+   JWT_REFRESH_EXPIRES_IN=7d
+   ```
+
+4. **Initialize the database**
+
+   This command will delete the existing database, recreate it, and seed it with sample data (users, establishments, comments, etc...)
+
+   ```bash
+   npm run seed
+   ```
+
+   > ⚠️ **Warning**: `npm run seed` will delete all existing data in your database!
+
+## Running the Application
+
+### Development Mode
 
 ```bash
-$ npm install
+npm run dev
 ```
 
-``` bash
-cp .env.example .env
-```
-
-## Compile and run the project
+### Production Mode
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run build
+npm start
 ```
 
-## Run tests
+## Database Seeding
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run seed
 ```
 
-## Deployment
+## Avatar Generation
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+The application uses the [DiceBear API](https://api.dicebear.com/) to generate unique avatars for users. Avatars are generated using the "thumbs" style:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```typescript
+https://api.dicebear.com/7.x/thumbs/svg?seed={unique_seed}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## API Endpoints
 
-## Resources
+### Authentication
 
-Check out a few resources that may come in handy when working with NestJS:
+- `POST /auth/register` - Register a new user
+- `POST /auth/login` - Login user
+- `POST /auth/refresh` - Refresh access token
+- `POST /auth/logout` - Logout user
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Establishments
 
-## Support
+- `GET /establishments` - Get all establishments
+- `GET /establishments/:id` - Get establishment by ID
+- `POST /establishments` - Create new establishment (admin)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Bookings
 
-## Stay in touch
+- `GET /bookings` - Get user's bookings
+- `POST /bookings` - Create new booking
+- `PUT /bookings/:id` - Update booking
+- `DELETE /bookings/:id` - Cancel booking
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Comments
 
-## License
+- `GET /establishments/:id/comments` - Get establishment comments
+- `POST /establishments/:id/comments` - Add comment
+- `PUT /comments/:id` - Update comment
+- `DELETE /comments/:id` - Delete comment
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Environment Variables Reference
+
+| Variable                 | Description               | Example                |
+| ------------------------ | ------------------------- | ---------------------- |
+| `DB_TYPE`                | Database type             | `postgres`             |
+| `DB_HOST`                | Database host address     | `localhost`            |
+| `DB_PORT`                | Database port             | `5432`                 |
+| `DB_USERNAME`            | Database username         | `postgres`             |
+| `DB_PASSWORD`            | Database password         | `your_password`        |
+| `DB_DATABASE`            | Database name             | `booking_db`           |
+| `JWT_ACCESS_SECRET`      | Secret for access tokens  | `random_secure_string` |
+| `JWT_REFRESH_SECRET`     | Secret for refresh tokens | `random_secure_string` |
+| `JWT_ACCESS_EXPIRES_IN`  | Access token expiry       | `15m`                  |
+| `JWT_REFRESH_EXPIRES_IN` | Refresh token expiry      | `7d`                   |
