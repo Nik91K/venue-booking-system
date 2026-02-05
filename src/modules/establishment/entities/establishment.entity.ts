@@ -16,6 +16,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+import { Schedule } from '@/modules/schedule/entities/schedule.entity';
+
 @Entity()
 export class Establishment {
   @PrimaryGeneratedColumn()
@@ -90,4 +92,9 @@ export class Establishment {
     },
   })
   moderators: User[];
+
+  @OneToMany(() => Schedule, schedule => schedule.establishment, {
+    cascade: true,
+  })
+  schedules: Schedule[];
 }

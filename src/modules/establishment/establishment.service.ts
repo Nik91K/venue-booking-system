@@ -16,7 +16,6 @@ import { PageMetaDto } from '@/pagination/dto/page-meta.dto';
 import { PageOptionsDto, SortField } from '@/pagination/dto/page-options.dto';
 import { PageDto } from '@/pagination/dto/page.dto';
 
-// FIX: Type should extend Establishment
 type EstablishmentWithMetrics = Establishment & {
   commentsCount: number;
   avgRating: number;
