@@ -1,3 +1,4 @@
+import { JwtAuthGuard } from '@common/guard/jwt.guard';
 import { BookingService } from '@modules/booking/booking.service';
 import { CreateBookingDto } from '@modules/booking/dto/create-booking.dto';
 import {
@@ -16,14 +17,14 @@ import {
   ApiOkResponse,
   ApiOperation,
 } from '@nestjs/swagger';
-
-import { JwtAuthGuard } from '@/common/guard/jwt.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('booking')
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
   @Post()
+  @Throttle({ booking: { limit: 20, ttl: 60000 } })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new reservation' })

@@ -1,3 +1,4 @@
+import { JwtAuthGuard, RolesGuard } from '@common/guard/jwt.guard';
 import { AuthModule } from '@modules/auth/auth.module';
 import { BookingModule } from '@modules/booking/booking.module';
 import { EstablishmentModule } from '@modules/establishment/establishment.module';
@@ -5,6 +6,8 @@ import { FeaturesModule } from '@modules/features/features.module';
 import { UsersModule } from '@modules/users/users.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 import { databaseConfig } from '@/database/database.config';
@@ -35,6 +38,19 @@ import { EstablishmentTypeModule } from '@/modules/establishment-type/establishm
     SeederModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

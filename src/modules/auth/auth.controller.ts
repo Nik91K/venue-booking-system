@@ -1,3 +1,5 @@
+import { Roles } from '@common/decorator/roles.decorator';
+import { JwtAuthGuard, RolesGuard } from '@common/guard/jwt.guard';
 import { AuthService } from '@modules/auth/auth.service';
 import { ChangeRoleDto } from '@modules/auth/dto/change-role.dto';
 import { CreateAuthDto } from '@modules/auth/dto/create-auth.dto';
@@ -24,9 +26,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-
-import { Roles } from '@/common/decorator/roles.decorator';
-import { JwtAuthGuard, RolesGuard } from '@/common/guard/jwt.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -34,6 +34,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Throttle({ auth: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: 'Create new user' })
   @ApiCreatedResponse({ description: 'User created' })
   @ApiConflictResponse({ description: 'Email already in use' })
@@ -42,6 +43,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({ auth: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: 'Login user' })
   @ApiCreatedResponse({ description: 'Login successful' })
   @ApiNotFoundResponse({ description: 'User not found' })
