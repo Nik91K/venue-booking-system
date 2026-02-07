@@ -63,7 +63,7 @@ export class AuthService {
   }
 
   async getTokens(userId: number, email: string, role: UserRole) {
-    const payload = { sub: userId, email, role };
+    const payload = { id: userId, email, role };
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
@@ -98,7 +98,7 @@ export class AuthService {
       const payload = await this.jwtService.verifyAsync(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
       });
-      return this.getTokens(payload.sub, payload.email, payload.role);
+      return this.getTokens(payload.id, payload.email, payload.role);
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }

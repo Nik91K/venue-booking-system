@@ -30,7 +30,7 @@ import { JwtAuthGuard, RolesGuard } from '@/common/guard/jwt.guard';
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
-  @Post('/establishments/:id/schedule')
+  @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.OWNER, UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
@@ -43,7 +43,7 @@ export class ScheduleController {
     return this.scheduleService.create(createScheduleDto);
   }
 
-  @Get('/establishments/:establishmentId/schedule')
+  @Get(':establishmentId')
   @ApiOperation({ summary: 'Get schedule for establishment' })
   @ApiOkResponse({ description: 'Success', type: Schedule })
   @ApiBadRequestResponse({ description: 'Bad request data' })
@@ -51,7 +51,7 @@ export class ScheduleController {
     return this.scheduleService.findByEstablishment(+establishmentId);
   }
 
-  @Patch('/schedule/:id')
+  @Patch(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.OWNER, UserRole.SUPER_ADMIN)
@@ -67,7 +67,7 @@ export class ScheduleController {
     return this.scheduleService.update(+id, updateScheduleDto);
   }
 
-  @Delete('/schedule/:id')
+  @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete schedule' })

@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   Unique,
+  JoinColumn,
 } from 'typeorm';
 
 import { Establishment } from '@/modules/establishment/entities/establishment.entity';
@@ -34,7 +35,9 @@ export class Schedule {
   closeTime: string;
 
   @ManyToOne(() => Establishment, establishment => establishment.schedules, {
+    nullable: false,
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'establishmentId' })
   establishment: Establishment;
 }

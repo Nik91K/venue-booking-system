@@ -34,7 +34,7 @@ export class UsersController {
   @ApiOkResponse({ description: 'Current user profile retrieved' })
   @ApiUnauthorizedResponse({ description: 'Not authenticated' })
   getCurrentUser(@Request() req) {
-    return this.usersService.getCurrentUser(req.user.userId);
+    return this.usersService.getCurrentUser(req.user.id);
   }
 
   @Patch('me')
@@ -44,10 +44,10 @@ export class UsersController {
   @ApiOkResponse({ description: 'Profile updated successfully' })
   @ApiUnauthorizedResponse({ description: 'Not authenticated' })
   updateCurrentUser(@Request() req, @Body() updateAuthDto: UpdateUserDto) {
-    return this.usersService.updateCurrentUser(req.user.id, updateAuthDto);
+    return this.usersService.updateCurrentUser(req.user.id5, updateAuthDto);
   }
 
-  @Get('users')
+  @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
@@ -58,7 +58,7 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get('users/:id')
+  @Get(':id')
   @UseGuards()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user by ID' })
@@ -68,7 +68,7 @@ export class UsersController {
     return this.usersService.getUserById(+id);
   }
 
-  @Delete('users/:id')
+  @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete user by ID' })

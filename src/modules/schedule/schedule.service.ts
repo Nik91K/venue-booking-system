@@ -21,7 +21,9 @@ export class ScheduleService {
     });
 
     if (!establishment) {
-      throw new NotFoundException('Establishment not found');
+      throw new NotFoundException(
+        `Establishment ${createScheduleDto.establishmentId} not found`
+      );
     }
 
     const schedule = this.scheduleRepository.create({

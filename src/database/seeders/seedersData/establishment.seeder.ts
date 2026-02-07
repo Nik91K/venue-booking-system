@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
+import { Schedule } from '@modules/schedule/entities/schedule.entity';
 import { User, UserRole } from '@modules/users/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,7 +16,9 @@ export class EstablishmentSeeder {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(EstablishmentType)
-    private readonly establishmentTypeRepository: Repository<EstablishmentType>
+    private readonly establishmentTypeRepository: Repository<EstablishmentType>,
+    @InjectRepository(Schedule)
+    private readonly scheduleRepository: Repository<Schedule>
   ) {}
 
   async seedData(count: number = 20) {

@@ -7,6 +7,7 @@ import { AdminSeeder } from '@/database/seeders/seedersData/admin.seeder';
 import { CommentSeeder } from '@/database/seeders/seedersData/comment.seeder';
 import { EstablishmentSeeder } from '@/database/seeders/seedersData/establishment.seeder';
 import { EstablishmentTypeSeeder } from '@/database/seeders/seedersData/establishmentType.seeder';
+import { ScheduleSeeder } from '@/database/seeders/seedersData/schedule.seeder';
 import { UserSeeder } from '@/database/seeders/seedersData/user.seeder';
 
 @Injectable()
@@ -18,7 +19,8 @@ export class MainSeeder {
     private readonly adminSeeder: AdminSeeder,
     private readonly establishmentTypeSeeder: EstablishmentTypeSeeder,
     private readonly establishmentSeeder: EstablishmentSeeder,
-    private readonly commentSeeder: CommentSeeder
+    private readonly commentSeeder: CommentSeeder,
+    private readonly scheduleSeeder: ScheduleSeeder
   ) {}
 
   async run() {
@@ -46,6 +48,7 @@ export class MainSeeder {
     await this.adminSeeder.seedAdmin();
     await this.establishmentTypeSeeder.seedData(3);
     await this.establishmentSeeder.seedData(100);
+    await this.scheduleSeeder.seedSchedules();
     await this.commentSeeder.seedData(200);
   }
 }
