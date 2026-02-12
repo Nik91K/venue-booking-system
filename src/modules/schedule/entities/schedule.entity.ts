@@ -28,10 +28,10 @@ export class Schedule {
   @Column({ type: 'enum', enum: ScheduleDays })
   day: ScheduleDays;
 
-  @Column({ type: 'time' })
+  @Column({ type: 'time', nullable: true })
   openTime: string;
 
-  @Column({ type: 'time' })
+  @Column({ type: 'time', nullable: true })
   closeTime: string;
 
   @ManyToOne(() => Establishment, establishment => establishment.schedules, {

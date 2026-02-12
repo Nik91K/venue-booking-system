@@ -1,6 +1,6 @@
 import { Roles } from '@common/decorator/roles.decorator';
-import { CreateScheduleDto } from '@modules/schedule/dto/create-schedule.dto';
-import { UpdateScheduleDto } from '@modules/schedule/dto/update-schedule.dto';
+import { CreateSchedulesDto } from '@modules/schedule/dto/create-schedule.dto';
+import { UpdateSingleScheduleDto } from '@modules/schedule/dto/update-schedule.dto';
 import { Schedule } from '@modules/schedule/entities/schedule.entity';
 import { ScheduleService } from '@modules/schedule/schedule.service';
 import { UserRole } from '@modules/users/entities/user.entity';
@@ -35,12 +35,15 @@ export class ScheduleController {
   @Roles(UserRole.OWNER, UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create schedule' })
-  @ApiCreatedResponse({ description: 'Create success', type: Schedule })
+  @ApiCreatedResponse({
+    description: 'Create success',
+    type: [Schedule],
+  })
   @ApiBadRequestResponse({ description: 'Bad request data' })
   @ApiUnauthorizedResponse({ description: 'Not authenticated' })
   @ApiForbiddenResponse({ description: 'Insufficient permissions' })
-  create(@Body() createScheduleDto: CreateScheduleDto) {
-    return this.scheduleService.create(createScheduleDto);
+  create(@Body() createSchedulesDto: CreateSchedulesDto) {
+    return this.scheduleService.create(createSchedulesDto);
   }
 
   @Get(':establishmentId')
@@ -62,9 +65,9 @@ export class ScheduleController {
   @ApiForbiddenResponse({ description: 'Insufficient permissions' })
   update(
     @Param('id') id: string,
-    @Body() updateScheduleDto: UpdateScheduleDto
+    @Body() updateSingleScheduleDto: UpdateSingleScheduleDto
   ) {
-    return this.scheduleService.update(+id, updateScheduleDto);
+    return this.scheduleService.update(+id, updateSingleScheduleDto);
   }
 
   @Delete(':id')

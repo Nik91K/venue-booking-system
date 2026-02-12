@@ -1,6 +1,5 @@
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
-import { CreateScheduleDto } from '@modules/schedule/dto/create-schedule.dto';
-import { UpdateScheduleDto } from '@modules/schedule/dto/update-schedule.dto';
+import { CreateSchedulesDto } from '@modules/schedule/dto/create-schedule.dto';
 import { Schedule } from '@modules/schedule/entities/schedule.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,25 +14,30 @@ export class ScheduleService {
     @InjectRepository(Establishment)
     private readonly establishmentRepository: Repository<Establishment>
   ) {}
-  async create(createScheduleDto: CreateScheduleDto) {
+
+  async create(createSchedulesDto: CreateSchedulesDto) {
     const establishment = await this.establishmentRepository.findOne({
-      where: { id: createScheduleDto.establishmentId },
+      where: { id: createSchedulesDto.establishmentId },
     });
 
     if (!establishment) {
       throw new NotFoundException(
-        `Establishment ${createScheduleDto.establishmentId} not found`
+        `Establishment ${createSchedulesDto.establishmentId} not found`
       );
     }
 
-    const schedule = this.scheduleRepository.create({
-      day: createScheduleDto.day,
-      openTime: createScheduleDto.openTime,
-      closeTime: createScheduleDto.closeTime,
-      establishment,
-    });
+    const schedules = createSchedulesDto.scheduleItems.flatMap(item =>
+      item.day.map(day =>
+        this.scheduleRepository.create({
+          establishment,
+          day,
+          openTime: item.openTime,
+          closeTime: item.closeTime,
+        })
+      )
+    );
 
-    return await this.scheduleRepository.save(schedule);
+    return await this.scheduleRepository.save(schedules);
   }
 
   async findByEstablishment(establishmentId: number) {
@@ -47,17 +51,26 @@ export class ScheduleService {
     });
   }
 
-  async update(id: number, updateScheduleDto: UpdateScheduleDto) {
+  async update(
+    id: number,
+    userData: { openTime?: string; closeTime?: string }
+  ) {
     const schedule = await this.scheduleRepository.findOne({
       where: { id },
-      relations: ['establishment'],
     });
 
     if (!schedule) {
       throw new NotFoundException(`Schedule ${id} not found`);
     }
 
-    this.scheduleRepository.merge(schedule, updateScheduleDto);
+    if (userData.openTime) {
+      schedule.openTime = userData.openTime;
+    }
+
+    if (userData.closeTime) {
+      schedule.closeTime = userData.closeTime;
+    }
+
     return this.scheduleRepository.save(schedule);
   }
 
