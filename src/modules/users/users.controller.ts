@@ -44,7 +44,7 @@ export class UsersController {
   @ApiOkResponse({ description: 'Profile updated successfully' })
   @ApiUnauthorizedResponse({ description: 'Not authenticated' })
   updateCurrentUser(@Request() req, @Body() updateAuthDto: UpdateUserDto) {
-    return this.usersService.updateCurrentUser(req.user.id5, updateAuthDto);
+    return this.usersService.updateCurrentUser(req.user.id, updateAuthDto);
   }
 
   @Get()

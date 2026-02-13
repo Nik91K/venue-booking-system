@@ -27,13 +27,28 @@ export class CommentSeeder {
     }
 
     const comments: Comment[] = [];
+    const existingKeys = new Set<string>();
 
     for (let i = 0; i < count; i++) {
+      let randomUser: User;
+      let randomEstablishment: Establishment;
+      let key: string;
+
+      do {
+        randomUser = faker.helpers.arrayElement(users);
+        randomEstablishment = faker.helpers.arrayElement(establishments);
+        key = `${randomUser.id}-${randomEstablishment.id}`;
+      } while (
+        comments.some(c => `${c.user.id}-${c.establishment.id}` === key)
+      );
+
+      existingKeys.add(key);
+
       const comment = this.commentRepository.create({
         text: faker.lorem.paragraph(),
         rating: faker.number.int({ min: 1, max: 5 }),
-        user: faker.helpers.arrayElement(users),
-        establishment: faker.helpers.arrayElement(establishments),
+        user: randomUser,
+        establishment: randomEstablishment,
       });
 
       comments.push(comment);

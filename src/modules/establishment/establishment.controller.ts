@@ -172,4 +172,58 @@ export class EstablishmentController {
   removeFavorite(@Param('id') id: string, @CurrentUser() user: User) {
     return this.establishmentService.removeFavorite(user.id, +id);
   }
+
+  @Post(':id/moderators/:userId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add a moderator to establishment' })
+  @ApiCreatedResponse({
+    description: 'Moderator added successfully',
+    type: Establishment,
+  })
+  @ApiBadRequestResponse({ description: 'Invalid id or user not found' })
+  @ApiNotFoundResponse({ description: 'Establishment not found' })
+  addModerator(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @CurrentUser() currentUser: User
+  ) {
+    return this.establishmentService.addModerator(+id, +userId, currentUser.id);
+  }
+
+  @Delete(':id/moderators/:userId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remove a moderator from establishment' })
+  @ApiOkResponse({
+    description: 'Moderator removed successfully',
+    type: Establishment,
+  })
+  @ApiBadRequestResponse({ description: 'Invalid id' })
+  @ApiNotFoundResponse({ description: 'Establishment not found' })
+  removeModerator(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @CurrentUser() currentUser: User
+  ) {
+    return this.establishmentService.removeModerator(
+      +id,
+      +userId,
+      currentUser.id
+    );
+  }
+
+  @Get(':id/moderators')
+  @ApiOperation({ summary: 'Get all moderators of establishment' })
+  @ApiOkResponse({
+    description: 'Moderators retrieved successfully',
+    type: [User],
+  })
+  @ApiBadRequestResponse({ description: 'Invalid id' })
+  @ApiNotFoundResponse({ description: 'Establishment not found' })
+  getModerators(@Param('id') id: string) {
+    return this.establishmentService.getModerators(+id);
+  }
 }

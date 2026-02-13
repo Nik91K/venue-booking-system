@@ -2,9 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsNotEmpty, IsString, Max, Min } from 'class-validator';
 
 export class CreateCommentDto {
-  @ApiProperty()
-  id: number;
-
   @IsString()
   @IsNotEmpty()
   @ApiProperty({

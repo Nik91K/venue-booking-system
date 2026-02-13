@@ -3,7 +3,7 @@ import { UpdateEstablishmentDto } from '@modules/establishment/dto/update-establ
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
 import { EstablishmentType } from '@modules/establishment-type/entities/establishment-type.entity';
 import { Feature } from '@modules/features/entities/feature.entity';
-import { User } from '@modules/users/entities/user.entity';
+import { User, UserRole } from '@modules/users/entities/user.entity';
 import {
   BadRequestException,
   Injectable,
@@ -327,5 +327,124 @@ export class EstablishmentService {
     return this.establishmentRepository.find({
       where: { id: In(user.favorites) },
     });
+  }
+
+  async addModerator(
+    establishmentId: number,
+    userId: number,
+    currentUserId: number
+  ) {
+    const establishment = await this.establishmentRepository.findOne({
+      where: { id: establishmentId },
+      relations: ['owner', 'moderators'],
+    });
+
+    if (!establishment) {
+      throw new NotFoundException(`Establishment ${establishmentId} not found`);
+    }
+
+    console.log('Current moderators:', establishment.moderators);
+    console.log('Moderators length:', establishment.moderators?.length);
+    console.log('Moderators type:', typeof establishment.moderators);
+
+    const currentUser = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+
+    if (!currentUser) {
+      throw new NotFoundException(`Current user ${currentUserId} not found`);
+    }
+
+    if (
+      currentUser.role !== UserRole.SUPER_ADMIN &&
+      establishment.ownerId !== currentUserId
+    ) {
+      throw new BadRequestException(
+        `User ${currentUserId} does not have permission to add moderators`
+      );
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    if (user.role !== UserRole.MODERATOR) {
+      throw new BadRequestException(`User ${userId} is not a moderator`);
+    }
+
+    if (!establishment.moderators) {
+      establishment.moderators = [];
+    }
+
+    const alreadyModerator = establishment.moderators.some(
+      mod => mod.id === userId
+    );
+    console.log('Already moderator?', alreadyModerator);
+
+    if (alreadyModerator) {
+      return establishment;
+    }
+
+    establishment.moderators.push(user);
+    return await this.establishmentRepository.save(establishment);
+  }
+
+  async removeModerator(
+    establishmentId: number,
+    userId: number,
+    currentUserId: number
+  ) {
+    const establishment = await this.establishmentRepository.findOne({
+      where: { id: establishmentId },
+      relations: ['owner', 'moderators'],
+    });
+
+    if (!establishment) {
+      throw new NotFoundException(`Establishment ${establishmentId} not found`);
+    }
+
+    const currentUser = await this.userRepository.findOne({
+      where: { id: currentUserId },
+    });
+
+    if (!currentUser) {
+      throw new NotFoundException(`Current user ${currentUserId} not found`);
+    }
+
+    if (
+      currentUser.role !== UserRole.SUPER_ADMIN &&
+      establishment.ownerId !== currentUserId
+    ) {
+      throw new BadRequestException(
+        `You don't have permission to remove moderators from this establishment`
+      );
+    }
+
+    establishment.moderators = establishment.moderators.filter(
+      mod => mod.id !== userId
+    );
+    return await this.establishmentRepository.save(establishment);
+  }
+
+  async getModerators(establishmentId: number) {
+    const establishment = await this.establishmentRepository.findOne({
+      where: { id: establishmentId },
+      relations: ['owner', 'moderators'],
+    });
+
+    if (!establishment) {
+      throw new NotFoundException(`Establishment ${establishmentId} not found`);
+    }
+
+    return establishment.moderators.map(mod => ({
+      id: mod.id,
+      name: mod.name,
+      email: mod.email,
+      role: mod.role,
+    }));
   }
 }

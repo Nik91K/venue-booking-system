@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -34,6 +35,7 @@ export class CommentController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new comment' })
   @ApiCreatedResponse({ description: 'Create success', type: Comment })
   @ApiBadRequestResponse({ description: 'Bad request data' })
@@ -56,7 +58,9 @@ export class CommentController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update  comment' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update comment' })
   @ApiOkResponse({ type: Comment })
   @ApiNotFoundResponse({ description: 'Invalid id' })
   update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto) {
@@ -64,6 +68,7 @@ export class CommentController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.MODERATOR)
   @ApiOperation({ summary: 'Delete  comment' })

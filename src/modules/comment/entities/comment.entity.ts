@@ -10,9 +10,11 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 
 @Entity()
+@Unique(['userId', 'establishmentId'])
 export class Comment {
   @PrimaryGeneratedColumn()
   @ApiProperty()

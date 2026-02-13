@@ -1,7 +1,16 @@
 import { RefreshToken } from '@modules/auth/entities/refresh-token.entity';
 import { Booking } from '@modules/booking/entities/booking.entity';
 import { Comment } from '@modules/comment/entities/comment.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
+import { Establishment } from '@/modules/establishment/entities/establishment.entity';
 
 export enum UserRole {
   USER = 'USER',
@@ -50,4 +59,10 @@ export class User {
 
   @Column('int', { array: true, default: [] })
   favorites: number[];
+
+  @OneToOne(() => Establishment, establishment => establishment.owner)
+  ownedEstablishment?: Establishment;
+
+  @ManyToMany(() => Establishment, establishment => establishment.moderators)
+  moderatedEstablishments: Establishment[];
 }

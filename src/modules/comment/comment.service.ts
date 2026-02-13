@@ -63,6 +63,19 @@ export class CommentService {
       throw new NotFoundException(`User ${userId} not found`);
     }
 
+    const existingComment = await this.commentRepository.findOne({
+      where: {
+        establishment: { id: establishmentId },
+        user: { id: userId },
+      },
+    });
+
+    if (existingComment) {
+      throw new NotFoundException(
+        `User ${userId} has already commented on establishment`
+      );
+    }
+
     const comment = this.commentRepository.create({
       ...data,
       establishment,
