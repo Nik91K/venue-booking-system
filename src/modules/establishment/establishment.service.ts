@@ -1,3 +1,9 @@
+import { PageMetaDto } from '@common/pagination/dto/page-meta.dto';
+import {
+  PageOptionsDto,
+  SortField,
+} from '@common/pagination/dto/page-options.dto';
+import { PageDto } from '@common/pagination/dto/page.dto';
 import { CreateEstablishmentDto } from '@modules/establishment/dto/create-establishment.dto';
 import { UpdateEstablishmentDto } from '@modules/establishment/dto/update-establishment.dto';
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
@@ -11,10 +17,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
-
-import { PageMetaDto } from '@/pagination/dto/page-meta.dto';
-import { PageOptionsDto, SortField } from '@/pagination/dto/page-options.dto';
-import { PageDto } from '@/pagination/dto/page.dto';
 
 type EstablishmentWithMetrics = Establishment & {
   commentsCount: number;
@@ -157,6 +159,21 @@ export class EstablishmentService {
 
     if (!establishment) {
       throw new NotFoundException(`Establishment ${id} not found`);
+    }
+
+    return establishment;
+  }
+
+  async getEstablishmentByOwner(ownerId: number) {
+    const establishment = await this.establishmentRepository.find({
+      where: { ownerId },
+      relations: ['type', 'features', 'comments'],
+    });
+
+    if (!establishment.length) {
+      throw new NotFoundException(
+        `Establishment for owner ${ownerId} not found`
+      );
     }
 
     return establishment;
@@ -342,10 +359,6 @@ export class EstablishmentService {
     if (!establishment) {
       throw new NotFoundException(`Establishment ${establishmentId} not found`);
     }
-
-    console.log('Current moderators:', establishment.moderators);
-    console.log('Moderators length:', establishment.moderators?.length);
-    console.log('Moderators type:', typeof establishment.moderators);
 
     const currentUser = await this.userRepository.findOne({
       where: { id: currentUserId },

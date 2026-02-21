@@ -1,3 +1,8 @@
+import { Roles } from '@common/decorator/roles.decorator';
+import { CurrentUser } from '@common/decorator/user.decorator';
+import { RolesGuard, JwtAuthGuard } from '@common/guard/jwt.guard';
+import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
+import { PageDto } from '@common/pagination/dto/page.dto';
 import { CreateEstablishmentDto } from '@modules/establishment/dto/create-establishment.dto';
 import { UpdateEstablishmentDto } from '@modules/establishment/dto/update-establishment.dto';
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
@@ -24,12 +29,6 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-
-import { Roles } from '@/common/decorator/roles.decorator';
-import { CurrentUser } from '@/common/decorator/user.decorator';
-import { RolesGuard, JwtAuthGuard } from '@/common/guard/jwt.guard';
-import { PageOptionsDto } from '@/pagination/dto/page-options.dto';
-import { PageDto } from '@/pagination/dto/page.dto';
 
 @Controller('establishment')
 export class EstablishmentController {
@@ -73,6 +72,20 @@ export class EstablishmentController {
   @ApiNotFoundResponse({ description: 'Favorites not found' })
   getAllFavorites(@CurrentUser() user: User) {
     return this.establishmentService.getAllFavorites(user.id);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(UserRole.OWNER)
+  @ApiOperation({ summary: 'Get current owner establishments' })
+  @ApiOkResponse({
+    description: 'Establishments details',
+    type: [Establishment],
+  })
+  @ApiNotFoundResponse({ description: 'Establishments not found' })
+  getEstablishmentByOwner(@CurrentUser() user: User) {
+    return this.establishmentService.getEstablishmentByOwner(user.id);
   }
 
   @Get(':id')
