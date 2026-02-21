@@ -1,11 +1,11 @@
+import {
+  generateAvatarSeed,
+  generateAvatarUrl,
+} from '@common/utils/avatar.util';
 import { User, UserRole } from '@modules/users/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import {
-  generateAvatarSeed,
-  generateAvatarUrl,
-} from 'src/common/utils/avatar.util';
 import { Repository } from 'typeorm';
 
 @Injectable()

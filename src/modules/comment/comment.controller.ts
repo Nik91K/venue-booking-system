@@ -1,3 +1,6 @@
+import { Roles } from '@common/decorator/roles.decorator';
+import { CurrentUser } from '@common/decorator/user.decorator';
+import { JwtAuthGuard, RolesGuard } from '@common/guard/jwt.guard';
 import { CommentService } from '@modules/comment/comment.service';
 import { CreateCommentDto } from '@modules/comment/dto/create-comment.dto';
 import { UpdateCommentDto } from '@modules/comment/dto/update-comment.dto';
@@ -23,10 +26,6 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-
-import { Roles } from '@/common/decorator/roles.decorator';
-import { CurrentUser } from '@/common/decorator/user.decorator';
-import { JwtAuthGuard, RolesGuard } from '@/common/guard/jwt.guard';
 
 @ApiTags('Comments')
 @Controller('comment')

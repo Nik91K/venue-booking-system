@@ -46,7 +46,7 @@ export class UsersService {
 
   async findAll() {
     const users = await this.userRepo.find({
-      relations: ['establishment', 'bookings'],
+      relations: ['bookings'],
     });
     return users.map(user => {
       const { password, ...userWithoutPassword } = user;

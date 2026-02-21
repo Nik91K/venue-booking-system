@@ -1,3 +1,5 @@
+import { Roles } from '@common/decorator/roles.decorator';
+import { JwtAuthGuard, RolesGuard } from '@common/guard/jwt.guard';
 import { UpdateUserDto } from '@modules/users/dto/update-user.dto';
 import { UserRole } from '@modules/users/entities/user.entity';
 import { UsersService } from '@modules/users/users.service';
@@ -19,9 +21,6 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-
-import { Roles } from '@/common/decorator/roles.decorator';
-import { JwtAuthGuard, RolesGuard } from '@/common/guard/jwt.guard';
 
 @Controller('users')
 export class UsersController {

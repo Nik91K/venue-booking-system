@@ -1,3 +1,4 @@
+import { RolesGuard, JwtAuthGuard } from '@common/guard/jwt.guard';
 import { AuthController } from '@modules/auth/auth.controller';
 import { AuthService } from '@modules/auth/auth.service';
 import { RefreshToken } from '@modules/auth/entities/refresh-token.entity';
@@ -7,8 +8,6 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { RolesGuard, JwtAuthGuard } from '@/common/guard/jwt.guard';
 
 @Module({
   imports: [

@@ -1,4 +1,5 @@
 import { Roles } from '@common/decorator/roles.decorator';
+import { JwtAuthGuard, RolesGuard } from '@common/guard/jwt.guard';
 import { CreateSchedulesDto } from '@modules/schedule/dto/create-schedule.dto';
 import { UpdateSingleScheduleDto } from '@modules/schedule/dto/update-schedule.dto';
 import { Schedule } from '@modules/schedule/entities/schedule.entity';
@@ -23,8 +24,6 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-
-import { JwtAuthGuard, RolesGuard } from '@/common/guard/jwt.guard';
 
 @Controller('schedule')
 export class ScheduleController {
