@@ -1,5 +1,6 @@
 import { Roles } from '@common/decorator/roles.decorator';
 import { CurrentUser } from '@common/decorator/user.decorator';
+import { EstablishmentOwnerGuard } from '@common/guard/establishment-owner.guard';
 import { RolesGuard, JwtAuthGuard } from '@common/guard/jwt.guard';
 import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
 import { PageDto } from '@common/pagination/dto/page.dto';
@@ -105,8 +106,7 @@ export class EstablishmentController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
+  @UseGuards(JwtAuthGuard, EstablishmentOwnerGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update establishment information' })
   @ApiOkResponse({
@@ -122,8 +122,7 @@ export class EstablishmentController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
+  @UseGuards(JwtAuthGuard, EstablishmentOwnerGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete establishment' })
   @ApiBadRequestResponse({ description: 'Invalid id' })
@@ -132,8 +131,7 @@ export class EstablishmentController {
   }
 
   @Post(':id/features/:featureId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
+  @UseGuards(JwtAuthGuard, EstablishmentOwnerGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Add a single feature to establishment' })
   @ApiOkResponse({
@@ -147,8 +145,7 @@ export class EstablishmentController {
   }
 
   @Delete(':id/features/:featureId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
+  @UseGuards(JwtAuthGuard, EstablishmentOwnerGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove a single feature from establishment' })
   @ApiOkResponse({
@@ -187,8 +184,7 @@ export class EstablishmentController {
   }
 
   @Post(':id/moderators/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
+  @UseGuards(JwtAuthGuard, EstablishmentOwnerGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Add a moderator to establishment' })
   @ApiCreatedResponse({
@@ -206,8 +202,7 @@ export class EstablishmentController {
   }
 
   @Delete(':id/moderators/:userId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
+  @UseGuards(JwtAuthGuard, EstablishmentOwnerGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove a moderator from establishment' })
   @ApiOkResponse({

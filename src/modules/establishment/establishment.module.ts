@@ -9,6 +9,8 @@ import { User } from '@modules/users/entities/user.entity';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { EstablishmentOwnerGuard } from '@/common/guard/establishment-owner.guard';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -21,7 +23,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     AuthModule,
   ],
   controllers: [EstablishmentController],
-  providers: [EstablishmentService],
+  providers: [EstablishmentService, EstablishmentOwnerGuard],
   exports: [EstablishmentService],
 })
 export class EstablishmentModule {}

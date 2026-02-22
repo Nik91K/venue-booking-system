@@ -120,6 +120,13 @@ export class EstablishmentService {
     // Create the query with metrics
     const queryBuilder = this.getEstablishmentMetrics();
 
+    if (pageOptionsDto.search) {
+      queryBuilder.andWhere(
+        '(LOWER(establishment.name) LIKE LOWER(:search) OR LOWER(establishment.address) LIKE LOWER(:search) OR CAST(establishment.id AS TEXT) LIKE :search)',
+        { search: `%${pageOptionsDto.search}%` }
+      );
+    }
+
     // Apply sorting / pagination
     this.applySorting(queryBuilder, pageOptionsDto);
     queryBuilder.offset(pageOptionsDto.skip).limit(pageOptionsDto.take);
@@ -144,8 +151,12 @@ export class EstablishmentService {
         };
       });
 
-    // Get total count for pagination
-    const itemCount = await this.establishmentRepository.count();
+    // Use filtered count, not total count
+    const itemCount = await queryBuilder
+      .clone()
+      .offset(undefined)
+      .limit(undefined)
+      .getCount();
 
     const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
     return new PageDto(enhancedEstablishments, pageMetaDto);
