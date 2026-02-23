@@ -8,6 +8,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -20,13 +21,30 @@ import {
 
 @Injectable()
 export class AuthService {
+  private readonly JWT_ACCESS_SECRET: string;
+  private readonly JWT_REFRESH_SECRET: string;
+  private readonly JWT_ACCESS_EXPIRES_IN: number;
+  private readonly JWT_REFRESH_EXPIRES_IN: number;
+
   constructor(
+    private configService: ConfigService,
     @InjectRepository(User)
     private userRepo: Repository<User>,
     @InjectRepository(RefreshToken)
     private refreshTokenRepo: Repository<RefreshToken>,
     private readonly jwtService: JwtService
-  ) {}
+  ) {
+    this.JWT_ACCESS_SECRET =
+      this.configService.getOrThrow<string>('JWT_ACCESS_SECRET');
+    this.JWT_REFRESH_SECRET =
+      this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+    this.JWT_ACCESS_EXPIRES_IN = this.configService.getOrThrow<number>(
+      'JWT_ACCESS_EXPIRES_IN'
+    );
+    this.JWT_REFRESH_EXPIRES_IN = this.configService.getOrThrow<number>(
+      'JWT_REFRESH_EXPIRES_IN'
+    );
+  }
 
   async register(dto: CreateAuthDto) {
     const existing = await this.userRepo.findOne({
@@ -66,19 +84,19 @@ export class AuthService {
     const payload = { id: userId, email, role };
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: Number(process.env.JWT_ACCESS_EXPIRES_IN) || 900,
+      secret: this.JWT_ACCESS_SECRET,
+      expiresIn: Number(this.JWT_ACCESS_EXPIRES_IN) || 900,
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: Number(process.env.JWT_REFRESH_EXPIRES_IN) || 604800,
+      secret: this.JWT_REFRESH_SECRET,
+      expiresIn: Number(this.JWT_REFRESH_EXPIRES_IN) || 604800,
     });
 
     const hashedToken = await bcrypt.hash(refreshToken, 10);
 
     const expiresAt = new Date();
-    const expiresInDays = Number(process.env.JWT_REFRESH_EXPIRES_IN) || 604800;
+    const expiresInDays = Number(this.JWT_REFRESH_EXPIRES_IN) || 604800;
     expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
     await this.refreshTokenRepo.delete({ user: { id: userId } });
@@ -96,7 +114,7 @@ export class AuthService {
   async refreshToken(refreshToken: string) {
     try {
       const payload = await this.jwtService.verifyAsync(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret: this.JWT_REFRESH_SECRET,
       });
       return this.getTokens(payload.id, payload.email, payload.role);
     } catch {

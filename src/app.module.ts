@@ -1,3 +1,5 @@
+import { validationSchema } from '@config/env.validation';
+import { throttlerConfig } from '@config/throttler.config';
 import { AuthModule } from '@modules/auth/auth.module';
 import { BookingModule } from '@modules/booking/booking.module';
 import { CommentModule } from '@modules/comment/comment.module';
@@ -11,8 +13,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 
-import { throttlerConfig } from '@/config/throttler.config';
-import { databaseConfig } from '@/database/database.config';
+import { databaseConfig } from '@/config/database.config';
 import { SeederModule } from '@/database/seeders/seeder.module';
 
 @Module({
@@ -22,6 +23,12 @@ import { SeederModule } from '@/database/seeders/seeder.module';
       load: [databaseConfig],
       isGlobal: true,
       envFilePath: '.env',
+      validationSchema,
+      validationOptions: {
+        abortEarly: true,
+        allowUnknown: true,
+        convert: true,
+      },
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -40,11 +47,5 @@ import { SeederModule } from '@/database/seeders/seeder.module';
     ScheduleModule,
   ],
   controllers: [],
-  providers: [
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: ThrottlerGuard,
-    // },
-  ],
 })
 export class AppModule {}

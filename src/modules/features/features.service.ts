@@ -2,20 +2,28 @@ import { CreateFeatureDto } from '@modules/features/dto/create-feature.dto';
 import { UpdateFeatureDto } from '@modules/features/dto/update-feature.dto';
 import { Feature } from '@modules/features/entities/feature.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class FeaturesService {
+  private readonly UPLOADS_FEATURES_PATH: string;
+
   constructor(
+    private configService: ConfigService,
     @InjectRepository(Feature)
     private featureRepository: Repository<Feature>
-  ) {}
+  ) {
+    this.UPLOADS_FEATURES_PATH = this.configService.getOrThrow<string>(
+      'UPLOADS_FEATURES_PATH'
+    );
+  }
 
   async create(dto: CreateFeatureDto, image?: Express.Multer.File) {
     const feature = this.featureRepository.create({
       name: dto.name,
-      image: image ? `/uploads/features/${image.filename}` : null,
+      image: image ? `${this.UPLOADS_FEATURES_PATH}/${image.filename}` : null,
     });
 
     return await this.featureRepository.save(feature);
@@ -43,7 +51,7 @@ export class FeaturesService {
     }
 
     if (image) {
-      feature.image = `/uploads/features/${image.filename}`;
+      feature.image = `${this.UPLOADS_FEATURES_PATH}/${image.filename}`;
     }
 
     Object.assign(feature, dto);

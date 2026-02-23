@@ -25,7 +25,7 @@ export class UsersService {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
 
-    Object.assign(user, dto);
+    this.userRepo.merge(user, dto);
     const updatedUser = await this.userRepo.save(user);
 
     const { password, ...userWithoutPassword } = updatedUser;
@@ -40,7 +40,7 @@ export class UsersService {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
 
-    Object.assign(user, dto);
+    this.userRepo.merge(user, dto);
     return this.userRepo.save(user);
   }
 

@@ -15,6 +15,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, SelectQueryBuilder } from 'typeorm';
 
@@ -26,10 +27,12 @@ type EstablishmentWithMetrics = Establishment & {
 
 @Injectable()
 export class EstablishmentService {
-  private readonly MINIMUM_COMMENTS = 2;
-  private readonly GLOBAL_AVERAGE_RATING = 1;
+  private readonly MINIMUM_COMMENTS: number;
+  private readonly GLOBAL_AVERAGE_RATING: number;
+  private readonly UPLOADS_ESTABLISHMENTS_PATH: string;
 
   constructor(
+    private configService: ConfigService,
     @InjectRepository(Establishment)
     private establishmentRepository: Repository<Establishment>,
     @InjectRepository(Feature)
@@ -38,7 +41,16 @@ export class EstablishmentService {
     private typeRepository: Repository<EstablishmentType>,
     @InjectRepository(User)
     private userRepository: Repository<User>
-  ) {}
+  ) {
+    this.MINIMUM_COMMENTS =
+      this.configService.getOrThrow<number>('MINIMUM_COMMENTS');
+    this.GLOBAL_AVERAGE_RATING = this.configService.getOrThrow<number>(
+      'GLOBAL_AVERAGE_RATING'
+    );
+    this.UPLOADS_ESTABLISHMENTS_PATH = this.configService.getOrThrow<string>(
+      'UPLOADS_ESTABLISHMENTS_PATH'
+    );
+  }
 
   async create(createEstablishmentDto: CreateEstablishmentDto, userId: number) {
     const establishment = this.establishmentRepository.create(
@@ -76,6 +88,8 @@ export class EstablishmentService {
       .addSelect('COUNT(comments.id)', 'commentsCount')
       .addSelect('COALESCE(AVG(comments.rating), 0)', 'avgRating')
       .addSelect(
+        // If the establishment has no comments, then weightedRating = 0
+        // The fewer comments, the stronger the influence of the global rating
         `
         CASE 
           WHEN COUNT(comments.id) = 0 THEN 0
@@ -102,7 +116,6 @@ export class EstablishmentService {
     queryBuilder: SelectQueryBuilder<Establishment>,
     pageOptionsDto: PageOptionsDto
   ): void {
-    // sorting
     const sortColumn = {
       [SortField.WEIGHTED_RATING]: '"weightedRating"',
       [SortField.COMMENTS_COUNT]: '"commentsCount"',
@@ -117,7 +130,6 @@ export class EstablishmentService {
   async getAllEstablishments(
     pageOptionsDto: PageOptionsDto
   ): Promise<PageDto<EstablishmentWithMetrics>> {
-    // Create the query with metrics
     const queryBuilder = this.getEstablishmentMetrics();
 
     if (pageOptionsDto.search) {
@@ -127,11 +139,9 @@ export class EstablishmentService {
       );
     }
 
-    // Apply sorting / pagination
     this.applySorting(queryBuilder, pageOptionsDto);
     queryBuilder.offset(pageOptionsDto.skip).limit(pageOptionsDto.take);
 
-    // Get the results with all data
     const results = await queryBuilder.getRawAndEntities();
 
     if (results.entities.length === 0) {
@@ -139,7 +149,6 @@ export class EstablishmentService {
       return new PageDto([], pageMetaDto);
     }
 
-    // Map entities with their metrics
     const enhancedEstablishments: EstablishmentWithMetrics[] =
       results.entities.map((establishment, index) => {
         const raw = results.raw[index];
@@ -218,7 +227,7 @@ export class EstablishmentService {
     }
 
     if (file) {
-      establishment.coverPhoto = `/uploads/establishments/${file.filename}`;
+      establishment.coverPhoto = `${this.UPLOADS_ESTABLISHMENTS_PATH}/${file.filename}`;
     }
 
     this.establishmentRepository.merge(establishment, updateEstablishmentDto);

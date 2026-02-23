@@ -1,3 +1,4 @@
+import { EstablishmentOwnerGuard } from '@common/guard/establishment-owner.guard';
 import { AuthModule } from '@modules/auth/auth.module';
 import { Comment } from '@modules/comment/entities/comment.entity';
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
@@ -8,8 +9,6 @@ import { Feature } from '@modules/features/entities/feature.entity';
 import { User } from '@modules/users/entities/user.entity';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { EstablishmentOwnerGuard } from '@/common/guard/establishment-owner.guard';
 
 @Module({
   imports: [

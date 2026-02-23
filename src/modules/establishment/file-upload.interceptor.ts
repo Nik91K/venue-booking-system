@@ -29,7 +29,7 @@ export const imageFileFilter = (
 
 export const multerOptions = {
   storage: diskStorage({
-    destination: './uploads/establishments',
+    destination: `${process.env.UPLOADS_ESTABLISHMENTS_PATH}`,
     filename: editFileName,
   }),
   fileFilter: imageFileFilter,
