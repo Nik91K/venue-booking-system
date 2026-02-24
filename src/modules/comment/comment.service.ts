@@ -1,12 +1,14 @@
+import { PageMetaDto } from '@common/pagination/dto/page-meta.dto';
+import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
+import { PageDto } from '@common/pagination/dto/page.dto';
+import { CreateCommentDto } from '@modules/comment/dto/create-comment.dto';
+import { UpdateCommentDto } from '@modules/comment/dto/update-comment.dto';
 import { Comment } from '@modules/comment/entities/comment.entity';
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
 import { User } from '@modules/users/entities/user.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
-import { CreateCommentDto } from './dto/create-comment.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @Injectable()
 export class CommentService {
@@ -87,16 +89,45 @@ export class CommentService {
     return savedComment;
   }
 
-  async findAllComments() {
-    return await this.commentRepository.find({});
+  async findAllComments(
+    pageOptionsDto: PageOptionsDto
+  ): Promise<PageDto<Comment>> {
+    const queryBuilder = this.commentRepository
+      .createQueryBuilder('comments')
+      .leftJoinAndSelect('comments.user', 'users')
+      .orderBy('comments.createdAt', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+
+    const itemCount = await queryBuilder.getCount();
+
+    const { entities } = await queryBuilder.getRawAndEntities();
+    const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
+    return new PageDto(entities, pageMetaDto);
   }
 
-  async findByEstablishment(establishmentId: number) {
-    return this.commentRepository.find({
-      where: {
-        establishment: { id: establishmentId },
-      },
+  async findByEstablishment(
+    establishmentId: number,
+    pageOptionsDto: PageOptionsDto
+  ): Promise<PageDto<Comment>> {
+    const queryBuilder = this.commentRepository
+      .createQueryBuilder('comments')
+      .leftJoinAndSelect('comments.user', 'users')
+      .where('comments.establishmentId = :establishmentId', { establishmentId })
+      .orderBy('comments.createdAt', pageOptionsDto.order)
+      .skip(pageOptionsDto.skip)
+      .take(pageOptionsDto.take);
+
+    const itemCount = await queryBuilder.getCount();
+
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({
+      pageOptionsDto,
+      itemCount,
     });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   async update(id: number, updateCreateCommentDto: UpdateCommentDto) {

@@ -1,6 +1,8 @@
 import { Roles } from '@common/decorator/roles.decorator';
 import { CurrentUser } from '@common/decorator/user.decorator';
 import { JwtAuthGuard, RolesGuard } from '@common/guard/jwt.guard';
+import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
+import { PageDto } from '@common/pagination/dto/page.dto';
 import { CommentService } from '@modules/comment/comment.service';
 import { CreateCommentDto } from '@modules/comment/dto/create-comment.dto';
 import { UpdateCommentDto } from '@modules/comment/dto/update-comment.dto';
@@ -16,6 +18,7 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -44,16 +47,21 @@ export class CommentController {
 
   @Get('/comments')
   @ApiOperation({ summary: 'Find all comments' })
-  @ApiOkResponse({ type: [Comment] })
-  findAllComments() {
-    return this.commentService.findAllComments();
+  @ApiOkResponse({ type: PageDto })
+  findAllComments(
+    @Query() pageOptionsDto: PageOptionsDto
+  ): Promise<PageDto<Comment>> {
+    return this.commentService.findAllComments(pageOptionsDto);
   }
 
   @Get('establishment/:id')
   @ApiOperation({ summary: 'Find comments by establishment' })
-  @ApiOkResponse({ type: [Comment] })
-  findByEstablishment(@Param('id', ParseIntPipe) id: number) {
-    return this.commentService.findByEstablishment(id);
+  @ApiOkResponse({ type: PageDto })
+  findByEstablishment(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() pageOptionsDto: PageOptionsDto
+  ): Promise<PageDto<Comment>> {
+    return this.commentService.findByEstablishment(id, pageOptionsDto);
   }
 
   @Patch(':id')

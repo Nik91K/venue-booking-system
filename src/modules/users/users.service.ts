@@ -1,3 +1,6 @@
+import { PageMetaDto } from '@common/pagination/dto/page-meta.dto';
+import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
+import { PageDto } from '@common/pagination/dto/page.dto';
 import { RefreshToken } from '@modules/auth/entities/refresh-token.entity';
 import { UpdateUserDto } from '@modules/users/dto/update-user.dto';
 import { User } from '@modules/users/entities/user.entity';
@@ -44,14 +47,32 @@ export class UsersService {
     return this.userRepo.save(user);
   }
 
-  async findAll() {
-    const users = await this.userRepo.find({
-      relations: ['bookings'],
-    });
-    return users.map(user => {
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
+  async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<User>> {
+    const queryBuilder = this.userRepo
+      .createQueryBuilder('users')
+      .leftJoinAndSelect('users.bookings', 'bookings')
+      .orderBy('users.id', pageOptionsDto.order);
+
+    if (pageOptionsDto.search) {
+      queryBuilder.andWhere(
+        '(LOWER(users.name) LIKE LOWER(:search) OR LOWER(users.email) LIKE LOWER(:search) OR users.phoneNumber LIKE :search)',
+        { search: `%${pageOptionsDto.search}%` }
+      );
+    }
+
+    queryBuilder.skip(pageOptionsDto.skip).take(pageOptionsDto.take);
+
+    const itemCount = await queryBuilder
+      .clone()
+      .offset(undefined)
+      .limit(undefined)
+      .getCount();
+
+    const { entities } = await queryBuilder.getRawAndEntities();
+
+    const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
+
+    return new PageDto(entities, pageMetaDto);
   }
 
   async getCurrentUser(userId: number) {

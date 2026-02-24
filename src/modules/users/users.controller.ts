@@ -1,7 +1,9 @@
 import { Roles } from '@common/decorator/roles.decorator';
 import { JwtAuthGuard, RolesGuard } from '@common/guard/jwt.guard';
+import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
+import { PageDto } from '@common/pagination/dto/page.dto';
 import { UpdateUserDto } from '@modules/users/dto/update-user.dto';
-import { UserRole } from '@modules/users/entities/user.entity';
+import { User, UserRole } from '@modules/users/entities/user.entity';
 import { UsersService } from '@modules/users/users.service';
 import {
   Controller,
@@ -12,6 +14,7 @@ import {
   UseGuards,
   Request,
   Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -53,8 +56,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Get all users (admin only)' })
   @ApiOkResponse({ description: 'Users retrieved successfully' })
   @ApiForbiddenResponse({ description: 'Insufficient permissions' })
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() pageOptionsDto: PageOptionsDto): Promise<PageDto<User>> {
+    return this.usersService.findAll(pageOptionsDto);
   }
 
   @Get(':id')

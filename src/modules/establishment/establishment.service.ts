@@ -416,7 +416,6 @@ export class EstablishmentService {
     const alreadyModerator = establishment.moderators.some(
       mod => mod.id === userId
     );
-    console.log('Already moderator?', alreadyModerator);
 
     if (alreadyModerator) {
       return establishment;
