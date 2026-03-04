@@ -1,5 +1,6 @@
 import { Roles } from '@common/decorator/roles.decorator';
-import { JwtAuthGuard, RolesGuard } from '@common/guard/jwt.guard';
+import { JwtAuthGuard } from '@common/guard/jwt-auth.guard';
+import { RolesGuard } from '@common/guard/jwt-roles.guard';
 import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
 import { PageDto } from '@common/pagination/dto/page.dto';
 import { UpdateUserDto } from '@modules/users/dto/update-user.dto';

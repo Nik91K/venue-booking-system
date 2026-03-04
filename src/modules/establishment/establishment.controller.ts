@@ -1,11 +1,9 @@
 import { Roles } from '@common/decorator/roles.decorator';
 import { CurrentUser } from '@common/decorator/user.decorator';
 import { EstablishmentOwnerGuard } from '@common/guard/establishment-owner.guard';
-import {
-  RolesGuard,
-  JwtAuthGuard,
-  OptionalJwtAuthGuard,
-} from '@common/guard/jwt.guard';
+import { JwtAuthGuard } from '@common/guard/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '@common/guard/jwt-optional-auth.guard';
+import { RolesGuard } from '@common/guard/jwt-roles.guard';
 import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
 import { PageDto } from '@common/pagination/dto/page.dto';
 import { CreateEstablishmentDto } from '@modules/establishment/dto/create-establishment.dto';

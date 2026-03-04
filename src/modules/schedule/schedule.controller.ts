@@ -1,5 +1,4 @@
 import { EstablishmentOwnerGuard } from '@common/guard/establishment-owner.guard';
-import { JwtAuthGuard } from '@common/guard/jwt.guard';
 import { CreateSchedulesDto } from '@modules/schedule/dto/create-schedule.dto';
 import { UpdateSingleScheduleDto } from '@modules/schedule/dto/update-schedule.dto';
 import { Schedule } from '@modules/schedule/entities/schedule.entity';
@@ -23,6 +22,8 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+
+import { JwtAuthGuard } from '@/common/guard/jwt-auth.guard';
 
 @Controller('schedule')
 export class ScheduleController {

@@ -1,4 +1,5 @@
-import { RolesGuard, JwtAuthGuard } from '@common/guard/jwt.guard';
+import { JwtAuthGuard } from '@common/guard/jwt-auth.guard';
+import { RolesGuard } from '@common/guard/jwt-roles.guard';
 import { AuthController } from '@modules/auth/auth.controller';
 import { AuthService } from '@modules/auth/auth.service';
 import { RefreshToken } from '@modules/auth/entities/refresh-token.entity';

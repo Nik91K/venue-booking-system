@@ -1,4 +1,3 @@
-import { JwtAuthGuard } from '@common/guard/jwt.guard';
 import { BookingService } from '@modules/booking/booking.service';
 import { CreateBookingDto } from '@modules/booking/dto/create-booking.dto';
 import {
@@ -18,6 +17,8 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+
+import { JwtAuthGuard } from '@/common/guard/jwt-auth.guard';
 
 @Controller('booking')
 export class BookingController {

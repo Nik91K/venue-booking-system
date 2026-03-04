@@ -1,3 +1,5 @@
+import { JwtAuthGuard } from '@common/guard/jwt-auth.guard';
+import { RolesGuard } from '@common/guard/jwt-roles.guard';
 import { CreateEstablishmentTypeDto } from '@modules/establishment-type/dto/create-establishment-type.dto';
 import { UpdateEstablishmentTypeDto } from '@modules/establishment-type/dto/update-establishment-type.dto';
 import { EstablishmentTypeService } from '@modules/establishment-type/establishment-type.service';
@@ -21,7 +23,6 @@ import {
 } from '@nestjs/swagger';
 
 import { Roles } from '@/common/decorator/roles.decorator';
-import { JwtAuthGuard, RolesGuard } from '@/common/guard/jwt.guard';
 
 @ApiTags('establishment-types')
 @Controller('establishment-type')

@@ -1,5 +1,6 @@
 import { Roles } from '@common/decorator/roles.decorator';
-import { JwtAuthGuard, RolesGuard } from '@common/guard/jwt.guard';
+import { JwtAuthGuard } from '@common/guard/jwt-auth.guard';
+import { RolesGuard } from '@common/guard/jwt-roles.guard';
 import { AuthService } from '@modules/auth/auth.service';
 import { ChangeRoleDto } from '@modules/auth/dto/change-role.dto';
 import { CreateAuthDto } from '@modules/auth/dto/create-auth.dto';
