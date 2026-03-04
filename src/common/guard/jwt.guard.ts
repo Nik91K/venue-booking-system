@@ -13,6 +13,14 @@ import { AuthGuard } from '@nestjs/passport';
 export class JwtAuthGuard extends AuthGuard('jwt') {}
 
 @Injectable()
+export class OptionalJwtAuthGuard extends JwtAuthGuard {
+  // Override handleRequest so it never throws an error
+  handleRequest(err, user, info, context) {
+    return user;
+  }
+}
+
+@Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 

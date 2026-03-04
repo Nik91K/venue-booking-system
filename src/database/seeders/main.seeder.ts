@@ -47,8 +47,8 @@ export class MainSeeder {
     });
     await this.adminSeeder.seedAdmin();
     await this.establishmentTypeSeeder.seedData(3);
-    await this.establishmentSeeder.seedData(100);
+    await this.establishmentSeeder.seedData(20);
     await this.scheduleSeeder.seedSchedules();
-    await this.commentSeeder.seedData(200);
+    await this.commentSeeder.seedData(100);
   }
 }

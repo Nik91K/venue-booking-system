@@ -52,6 +52,19 @@ export class EstablishmentService {
     );
   }
 
+  private async isFavorite(
+    userId: number,
+    establishmentId: number
+  ): Promise<boolean> {
+    const result = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.id = :userId', { userId })
+      .andWhere(':establishmentId = ANY(user.favorites)', { establishmentId })
+      .getCount();
+
+    return result > 0;
+  }
+
   async create(createEstablishmentDto: CreateEstablishmentDto, userId: number) {
     const establishment = this.establishmentRepository.create(
       createEstablishmentDto
@@ -128,7 +141,8 @@ export class EstablishmentService {
   }
 
   async getAllEstablishments(
-    pageOptionsDto: PageOptionsDto
+    pageOptionsDto: PageOptionsDto,
+    userId?: number
   ): Promise<PageDto<EstablishmentWithMetrics>> {
     const queryBuilder = this.getEstablishmentMetrics();
 
@@ -149,6 +163,17 @@ export class EstablishmentService {
       return new PageDto([], pageMetaDto);
     }
 
+    let favoriteIds: number[] = [];
+
+    if (userId) {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        select: ['favorites'],
+      });
+
+      favoriteIds = user?.favorites ?? [];
+    }
+
     const enhancedEstablishments: EstablishmentWithMetrics[] =
       results.entities.map((establishment, index) => {
         const raw = results.raw[index];
@@ -157,6 +182,7 @@ export class EstablishmentService {
           commentsCount: parseInt(raw.commentsCount) || 0,
           avgRating: parseFloat(raw.avgRating) || 0,
           weightedRating: parseFloat(raw.weightedRating) || 0,
+          isFavorite: favoriteIds.includes(establishment.id),
         };
       });
 
@@ -171,23 +197,28 @@ export class EstablishmentService {
     return new PageDto(enhancedEstablishments, pageMetaDto);
   }
 
-  async getEstablishmentById(id: number): Promise<Establishment> {
+  async getEstablishmentById(
+    id: number,
+    userId?: number
+  ): Promise<Establishment & { isFavorite: boolean }> {
     const establishment = await this.establishmentRepository.findOne({
       where: { id },
-      relations: ['type', 'features', 'comments'],
+      relations: ['type', 'features', 'comments', 'comments.user'],
     });
 
     if (!establishment) {
       throw new NotFoundException(`Establishment ${id} not found`);
     }
 
-    return establishment;
+    const isFavorite = userId ? await this.isFavorite(userId, id) : false;
+
+    return { ...establishment, isFavorite };
   }
 
   async getEstablishmentByOwner(ownerId: number) {
     const establishment = await this.establishmentRepository.find({
       where: { ownerId },
-      relations: ['type', 'features', 'comments'],
+      relations: ['type', 'features', 'comments', 'comments.user'],
     });
 
     if (!establishment.length) {
@@ -202,7 +233,7 @@ export class EstablishmentService {
   async getAllComments(id: number) {
     const establishment = await this.establishmentRepository.findOne({
       where: { id },
-      relations: ['comments'],
+      relations: ['comments', 'comments.user'],
     });
 
     if (!establishment) {
@@ -237,7 +268,7 @@ export class EstablishmentService {
   async findOneWithFeatures(id: number) {
     const establishment = await this.establishmentRepository.findOne({
       where: { id },
-      relations: ['features', 'comments'],
+      relations: ['features', 'comments', 'comments.user'],
     });
 
     if (!establishment) {
@@ -361,9 +392,12 @@ export class EstablishmentService {
       return [];
     }
 
-    return this.establishmentRepository.find({
+    const establishments = await this.establishmentRepository.find({
       where: { id: In(user.favorites) },
+      relations: ['type', 'features'],
     });
+
+    return establishments.map(est => ({ ...est, isFavorite: true }));
   }
 
   async addModerator(

@@ -66,8 +66,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiOkResponse({ description: 'User retrieved successfully' })
   @ApiNotFoundResponse({ description: 'User not found' })
-  getUserById(@Param('id') id: string) {
-    return this.usersService.getUserById(+id);
+  getUserById(@Param('id') id: number) {
+    return this.usersService.getUserById(id);
   }
 
   @Delete(':id')

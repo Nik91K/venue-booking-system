@@ -5,8 +5,12 @@ import { CreateCommentDto } from '@modules/comment/dto/create-comment.dto';
 import { UpdateCommentDto } from '@modules/comment/dto/update-comment.dto';
 import { Comment } from '@modules/comment/entities/comment.entity';
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
-import { User } from '@modules/users/entities/user.entity';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { User, UserRole } from '@modules/users/entities/user.entity';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -113,7 +117,7 @@ export class CommentService {
     const queryBuilder = this.commentRepository
       .createQueryBuilder('comments')
       .leftJoinAndSelect('comments.user', 'users')
-      .where('comments.establishmentId = :establishmentId', { establishmentId })
+      .where('comments.establishment = :establishmentId', { establishmentId })
       .orderBy('comments.createdAt', pageOptionsDto.order)
       .skip(pageOptionsDto.skip)
       .take(pageOptionsDto.take);
@@ -145,7 +149,7 @@ export class CommentService {
     return savedComment;
   }
 
-  async remove(id: number) {
+  async remove(id: number, userId: number, userRole: UserRole) {
     const comment = await this.commentRepository.findOne({
       where: { id },
       relations: ['establishment'],
@@ -153,9 +157,22 @@ export class CommentService {
 
     if (!comment) throw new NotFoundException(`Comment ${id} not found`);
 
+    if (userRole !== UserRole.SUPER_ADMIN) {
+      const establishment = comment.establishment;
+      const isOwner = establishment.ownerId === userId;
+      const isModerator = establishment.moderators?.some(
+        mod => mod.id === userId
+      );
+
+      if (!isOwner && !isModerator) {
+        throw new ForbiddenException(
+          `User ${userId} does not have permission to delete this comment`
+        );
+      }
+    }
+
     const establishmentId = comment.establishment.id;
     await this.commentRepository.delete(id);
-
     await this.updateEstablishmentRating(establishmentId);
 
     return { deleted: true };

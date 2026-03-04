@@ -24,6 +24,7 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -78,9 +79,10 @@ export class CommentController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER, UserRole.MODERATOR)
-  @ApiOperation({ summary: 'Delete  comment' })
+  @ApiOperation({ summary: 'Delete comment' })
   @ApiNotFoundResponse({ description: 'Invalid id' })
-  remove(@Param('id') id: string) {
-    return this.commentService.remove(+id);
+  @ApiForbiddenResponse({ description: 'Insufficient permissions' })
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.commentService.remove(+id, user.id, user.role);
   }
 }

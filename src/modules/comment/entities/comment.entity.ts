@@ -14,7 +14,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-@Unique(['userId', 'establishmentId'])
+@Unique(['user', 'establishment'])
 export class Comment {
   @PrimaryGeneratedColumn()
   @ApiProperty()
@@ -43,22 +43,12 @@ export class Comment {
   })
   createdAt: Date;
 
-  @Index()
-  @Column()
-  @ApiProperty()
-  establishmentId: number;
-
   @ManyToOne(() => Establishment, establishment => establishment.comments, {
     eager: false,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'establishmentId' })
   establishment: Establishment;
-
-  @Index()
-  @Column()
-  @ApiProperty()
-  userId: number;
 
   @ManyToOne(() => User, user => user.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })

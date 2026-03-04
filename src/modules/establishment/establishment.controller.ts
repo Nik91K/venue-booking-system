@@ -1,7 +1,11 @@
 import { Roles } from '@common/decorator/roles.decorator';
 import { CurrentUser } from '@common/decorator/user.decorator';
 import { EstablishmentOwnerGuard } from '@common/guard/establishment-owner.guard';
-import { RolesGuard, JwtAuthGuard } from '@common/guard/jwt.guard';
+import {
+  RolesGuard,
+  JwtAuthGuard,
+  OptionalJwtAuthGuard,
+} from '@common/guard/jwt.guard';
 import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
 import { PageDto } from '@common/pagination/dto/page.dto';
 import { CreateEstablishmentDto } from '@modules/establishment/dto/create-establishment.dto';
@@ -52,12 +56,18 @@ export class EstablishmentController {
   }
 
   @Get()
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all establishments' })
   @ApiOkResponse({ description: 'List of all establishments', type: PageDto })
   getAllEstablishments(
-    @Query() pageOptionsDto: PageOptionsDto
+    @Query() pageOptionsDto: PageOptionsDto,
+    @CurrentUser() user?: User
   ): Promise<PageDto<Establishment>> {
-    return this.establishmentService.getAllEstablishments(pageOptionsDto);
+    return this.establishmentService.getAllEstablishments(
+      pageOptionsDto,
+      user?.id
+    );
   }
 
   @Get('favorites')
@@ -90,11 +100,13 @@ export class EstablishmentController {
   }
 
   @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get establishment by ID' })
   @ApiOkResponse({ description: 'Establishment details', type: Establishment })
   @ApiNotFoundResponse({ description: 'Establishment not found' })
-  getEstablishmentById(@Param('id') id: string) {
-    return this.establishmentService.getEstablishmentById(+id);
+  getEstablishmentById(@Param('id') id: string, @CurrentUser() user?: User) {
+    return this.establishmentService.getEstablishmentById(+id, user?.id);
   }
 
   @Get(':id/comments')
