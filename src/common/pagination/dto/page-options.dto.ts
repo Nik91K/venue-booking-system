@@ -1,7 +1,15 @@
 import { Order } from '@common/pagination/constants/order';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 
 export enum SortField {
   WEIGHTED_RATING = 'weightedRating',
@@ -46,4 +54,15 @@ export class PageOptionsDto {
   @IsString()
   @IsOptional()
   search: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  readonly minRating?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  readonly typeId?: number;
 }

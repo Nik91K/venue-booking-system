@@ -153,6 +153,18 @@ export class EstablishmentService {
       );
     }
 
+    if (pageOptionsDto.minRating) {
+      queryBuilder.andHaving('AVG(comments.rating) >= :minRating', {
+        minRating: pageOptionsDto.minRating,
+      });
+    }
+
+    if (pageOptionsDto.typeId) {
+      queryBuilder.andWhere('type.id = :typeId', {
+        typeId: pageOptionsDto.typeId,
+      });
+    }
+
     this.applySorting(queryBuilder, pageOptionsDto);
     queryBuilder.offset(pageOptionsDto.skip).limit(pageOptionsDto.take);
 

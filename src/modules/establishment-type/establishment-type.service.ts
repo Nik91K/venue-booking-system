@@ -20,13 +20,12 @@ export class EstablishmentTypeService {
   }
 
   async findAll(): Promise<EstablishmentType[]> {
-    return this.typeRepository.find({ relations: ['establishments'] });
+    return await this.typeRepository.find();
   }
 
   async findOne(id: number): Promise<EstablishmentType> {
     const type = await this.typeRepository.findOne({
       where: { id },
-      relations: ['establishments'],
     });
 
     if (!type) {
