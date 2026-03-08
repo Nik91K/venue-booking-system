@@ -1,6 +1,7 @@
 import { RefreshToken } from '@modules/auth/entities/refresh-token.entity';
 import { Booking } from '@modules/booking/entities/booking.entity';
 import { Comment } from '@modules/comment/entities/comment.entity';
+import { Establishment } from '@modules/establishment/entities/establishment.entity';
 import {
   Column,
   Entity,
@@ -9,8 +10,6 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-
-import { Establishment } from '@/modules/establishment/entities/establishment.entity';
 
 export enum UserRole {
   USER = 'USER',
@@ -36,8 +35,8 @@ export class User {
   @Column({ unique: true })
   phoneNumber: string;
 
-  @Column()
-  avatarSeed: string;
+  @Column({ type: 'varchar', nullable: true })
+  avatarSeed: string | null;
 
   @Column()
   avatarUrl: string;

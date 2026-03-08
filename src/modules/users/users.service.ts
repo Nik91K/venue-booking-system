@@ -1,7 +1,9 @@
 import { PageMetaDto } from '@common/pagination/dto/page-meta.dto';
 import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
 import { PageDto } from '@common/pagination/dto/page.dto';
+import { FileUploadService } from '@common/services/file-upload.service';
 import { RefreshToken } from '@modules/auth/entities/refresh-token.entity';
+import { AdminUpdateUserDto } from '@modules/users/dto/admin-update-user.dto';
 import { UpdateUserDto } from '@modules/users/dto/update-user.dto';
 import { User } from '@modules/users/entities/user.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -15,10 +17,15 @@ export class UsersService {
     @InjectRepository(User)
     private userRepo: Repository<User>,
     @InjectRepository(RefreshToken)
-    private refreshTokenRepo: Repository<RefreshToken>
+    private refreshTokenRepo: Repository<RefreshToken>,
+    private fileUploadService: FileUploadService
   ) {}
 
-  async updateCurrentUser(userId: number, dto: UpdateUserDto) {
+  async updateCurrentUser(
+    userId: number,
+    dto: UpdateUserDto,
+    avatarFile?: Express.Multer.File
+  ) {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -28,6 +35,12 @@ export class UsersService {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
 
+    if (avatarFile) {
+      this.fileUploadService.deleteFile(user.avatarUrl);
+      dto.avatarUrl = this.fileUploadService.getFileUrl(avatarFile.filename);
+      dto.avatarSeed = null;
+    }
+
     this.userRepo.merge(user, dto);
     const updatedUser = await this.userRepo.save(user);
 
@@ -35,16 +48,31 @@ export class UsersService {
     return userWithoutPassword;
   }
 
-  async update(id: number, dto: UpdateUserDto) {
+  async adminUpdateUser(
+    id: number,
+    dto: AdminUpdateUserDto,
+    avatarFile?: Express.Multer.File
+  ) {
     const user = await this.userRepo.findOneBy({ id });
-    if (!user) return null;
+    if (!user) {
+      throw new NotFoundException(`User ${id} not found`);
+    }
 
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, 10);
     }
 
+    if (avatarFile) {
+      this.fileUploadService.deleteFile(user.avatarUrl);
+      dto.avatarUrl = this.fileUploadService.getFileUrl(avatarFile.filename);
+      dto.avatarSeed = null;
+    }
+
     this.userRepo.merge(user, dto);
-    return this.userRepo.save(user);
+    const updatedUser = await this.userRepo.save(user);
+
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
   }
 
   async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<User>> {
@@ -110,6 +138,7 @@ export class UsersService {
       throw new NotFoundException(`User ${id} not found`);
     }
 
+    this.fileUploadService.deleteFile(user.avatarUrl);
     await this.refreshTokenRepo.delete({ user: { id } });
     await this.userRepo.delete(id);
     return user;

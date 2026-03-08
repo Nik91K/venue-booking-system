@@ -5,9 +5,12 @@ import { UsersService } from '@modules/users/users.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { avatarUploadService } from '@/config/avatar-upload.config';
+
 @Module({
   imports: [TypeOrmModule.forFeature([User, RefreshToken])],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, avatarUploadService],
+  exports: [UsersService],
 })
 export class UsersModule {}

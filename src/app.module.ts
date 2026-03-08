@@ -1,3 +1,4 @@
+import { databaseConfig } from '@config/database.config';
 import { validationSchema } from '@config/env.validation';
 import { throttlerConfig } from '@config/throttler.config';
 import { AuthModule } from '@modules/auth/auth.module';
@@ -13,7 +14,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 
-import { databaseConfig } from '@/config/database.config';
 import { SeederModule } from '@/database/seeders/seeder.module';
 
 @Module({

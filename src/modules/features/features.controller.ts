@@ -1,5 +1,4 @@
-import { extname } from 'path';
-
+import { FeatureUploadInterceptor } from '@common/interceptor/feature-upload.interceptor';
 import { CreateFeatureDto } from '@modules/features/dto/create-feature.dto';
 import { UpdateFeatureDto } from '@modules/features/dto/update-feature.dto';
 import { FeaturesService } from '@modules/features/features.service';
@@ -14,7 +13,6 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiConsumes,
   ApiBody,
@@ -24,7 +22,6 @@ import {
   ApiBadRequestResponse,
   ApiNotFoundResponse,
 } from '@nestjs/swagger';
-import { diskStorage } from 'multer';
 
 @ApiTags('features')
 @Controller('features')
@@ -32,18 +29,7 @@ export class FeaturesController {
   constructor(private readonly featuresService: FeaturesService) {}
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './uploads/features',
-        filename: (req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, `feature-${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
-    })
-  )
+  @UseInterceptors(FeatureUploadInterceptor)
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a new feature with optional image' })
   @ApiBody({
@@ -90,18 +76,7 @@ export class FeaturesController {
   }
 
   @Patch(':id')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './uploads/features',
-        filename: (req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, `feature-${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
-    })
-  )
+  @UseInterceptors(FeatureUploadInterceptor)
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Update feature' })
   @ApiBody({
