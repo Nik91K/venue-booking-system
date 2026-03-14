@@ -4,6 +4,7 @@ import {
   SortField,
 } from '@common/pagination/dto/page-options.dto';
 import { PageDto } from '@common/pagination/dto/page.dto';
+import { FileUploadService } from '@common/services/file-upload.service';
 import { CreateEstablishmentDto } from '@modules/establishment/dto/create-establishment.dto';
 import { UpdateEstablishmentDto } from '@modules/establishment/dto/update-establishment.dto';
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
@@ -40,7 +41,8 @@ export class EstablishmentService {
     @InjectRepository(EstablishmentType)
     private typeRepository: Repository<EstablishmentType>,
     @InjectRepository(User)
-    private userRepository: Repository<User>
+    private userRepository: Repository<User>,
+    private fileUploadService: FileUploadService
   ) {
     this.MINIMUM_COMMENTS =
       this.configService.getOrThrow<number>('MINIMUM_COMMENTS');
@@ -66,9 +68,27 @@ export class EstablishmentService {
   }
 
   async create(createEstablishmentDto: CreateEstablishmentDto, userId: number) {
-    const establishment = this.establishmentRepository.create(
-      createEstablishmentDto
-    );
+    const establishmentData: Partial<Establishment> = {
+      name: createEstablishmentDto.name,
+      address: createEstablishmentDto.address,
+      description: createEstablishmentDto.description,
+      totalSeats: createEstablishmentDto.totalSeats,
+    };
+
+    if (createEstablishmentDto.coverPhoto) {
+      establishmentData.coverPhoto = this.fileUploadService.getFileUrl(
+        createEstablishmentDto.coverPhoto.filename
+      );
+    }
+
+    if (createEstablishmentDto.photos) {
+      establishmentData.photos = createEstablishmentDto.photos.map(photo =>
+        this.fileUploadService.getFileUrl(photo.filename)
+      );
+    }
+
+    const establishment =
+      this.establishmentRepository.create(establishmentData);
 
     if (createEstablishmentDto.typeId) {
       const type = await this.typeRepository.findOne({
@@ -255,11 +275,7 @@ export class EstablishmentService {
     return establishment.comments;
   }
 
-  async edit(
-    id: number,
-    updateEstablishmentDto: UpdateEstablishmentDto,
-    file?: Express.Multer.File
-  ) {
+  async edit(id: number, updateEstablishmentDto: UpdateEstablishmentDto) {
     const establishment = await this.establishmentRepository.findOne({
       where: { id },
       relations: ['features'],
@@ -269,11 +285,34 @@ export class EstablishmentService {
       throw new NotFoundException(`Establishment ${id} not found`);
     }
 
-    if (file) {
-      establishment.coverPhoto = `${this.UPLOADS_ESTABLISHMENTS_PATH}/${file.filename}`;
+    if (updateEstablishmentDto.coverPhoto) {
+      establishment.coverPhoto = this.fileUploadService.getFileUrl(
+        updateEstablishmentDto.coverPhoto.filename
+      );
     }
 
-    this.establishmentRepository.merge(establishment, updateEstablishmentDto);
+    if (updateEstablishmentDto.photos) {
+      establishment.photos = updateEstablishmentDto.photos.map(photo =>
+        this.fileUploadService.getFileUrl(photo.filename)
+      );
+    }
+
+    if (updateEstablishmentDto.typeId) {
+      const type = await this.typeRepository.findOne({
+        where: { id: updateEstablishmentDto.typeId },
+      });
+
+      if (!type) {
+        throw new NotFoundException(
+          `EstablishmentType ${updateEstablishmentDto.typeId} not found`
+        );
+      }
+
+      establishment.type = type;
+    }
+
+    const { coverPhoto, photos, typeId, ...rest } = updateEstablishmentDto;
+    this.establishmentRepository.merge(establishment, rest);
     return this.establishmentRepository.save(establishment);
   }
 

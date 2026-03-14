@@ -1,6 +1,7 @@
 import { Comment } from '@modules/comment/entities/comment.entity';
 import { EstablishmentType } from '@modules/establishment-type/entities/establishment-type.entity';
 import { Feature } from '@modules/features/entities/feature.entity';
+import { Schedule } from '@modules/schedule/entities/schedule.entity';
 import { User } from '@modules/users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import {
@@ -15,8 +16,6 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-
-import { Schedule } from '@/modules/schedule/entities/schedule.entity';
 
 @Entity()
 export class Establishment {
@@ -41,10 +40,10 @@ export class Establishment {
   rating: number;
 
   @Column({ type: 'text', nullable: true })
-  coverPhoto?: string;
+  coverPhoto: string;
 
   @Column({ type: 'simple-array', nullable: true })
-  photos?: string[];
+  photos: string[];
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

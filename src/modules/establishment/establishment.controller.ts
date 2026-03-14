@@ -21,10 +21,14 @@ import {
   Delete,
   UseGuards,
   Query,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -42,14 +46,34 @@ export class EstablishmentController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.OWNER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create establishment' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'coverPhoto', maxCount: 1 },
+      { name: 'photos', maxCount: 8 },
+    ])
+  )
   @ApiCreatedResponse({ description: 'Create success', type: Establishment })
   @ApiBadRequestResponse({ description: 'Bad request data' })
   @ApiUnauthorizedResponse({ description: 'Not authenticated' })
   @ApiForbiddenResponse({ description: 'Insufficient permissions' })
   create(
     @Body() createEstablishmentDto: CreateEstablishmentDto,
+    @UploadedFiles()
+    files: {
+      coverPhoto: Express.Multer.File[];
+      photos: Express.Multer.File[];
+    },
     @CurrentUser() user: User
   ) {
+    if (files?.coverPhoto) {
+      createEstablishmentDto.coverPhoto = files.coverPhoto[0];
+    }
+
+    if (files?.photos) {
+      createEstablishmentDto.photos = files.photos;
+    }
+
     return this.establishmentService.create(createEstablishmentDto, user.id);
   }
 
@@ -119,6 +143,13 @@ export class EstablishmentController {
   @UseGuards(JwtAuthGuard, EstablishmentOwnerGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update establishment information' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'coverPhoto', maxCount: 1 },
+      { name: 'photos', maxCount: 8 },
+    ])
+  )
   @ApiOkResponse({
     description: 'Establishment updated successfully',
     type: Establishment,
@@ -126,8 +157,21 @@ export class EstablishmentController {
   @ApiBadRequestResponse({ description: 'Invalid id' })
   update(
     @Param('id') id: string,
+    @UploadedFiles()
+    files: {
+      coverPhoto?: Express.Multer.File[];
+      photos?: Express.Multer.File[];
+    },
     @Body() updateEstablishmentDto: UpdateEstablishmentDto
   ) {
+    if (files.coverPhoto) {
+      updateEstablishmentDto.coverPhoto = files.coverPhoto[0];
+    }
+
+    if (files.photos) {
+      updateEstablishmentDto.photos = files.photos;
+    }
+
     return this.establishmentService.edit(+id, updateEstablishmentDto);
   }
 

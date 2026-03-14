@@ -1,4 +1,5 @@
 import { EstablishmentOwnerGuard } from '@common/guard/establishment-owner.guard';
+import { establishmentUploadService } from '@config/uploads/establishment.config';
 import { AuthModule } from '@modules/auth/auth.module';
 import { Comment } from '@modules/comment/entities/comment.entity';
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
@@ -22,7 +23,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     AuthModule,
   ],
   controllers: [EstablishmentController],
-  providers: [EstablishmentService, EstablishmentOwnerGuard],
+  providers: [
+    EstablishmentService,
+    EstablishmentOwnerGuard,
+    establishmentUploadService,
+  ],
   exports: [EstablishmentService],
 })
 export class EstablishmentModule {}

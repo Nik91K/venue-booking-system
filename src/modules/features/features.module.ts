@@ -1,4 +1,4 @@
-import { featureUploadService } from '@config/feature-upload.config';
+import { featureUploadService } from '@config/uploads/feature-upload.config';
 import { Feature } from '@modules/features/entities/feature.entity';
 import { FeaturesController } from '@modules/features/features.controller';
 import { FeaturesService } from '@modules/features/features.service';

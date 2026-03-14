@@ -56,5 +56,21 @@ export class CreateEstablishmentDto {
     example: 1,
     description: 'Establishment type ID',
   })
-  typeId?: number;
+  typeId: number;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Cover photo for the establishment',
+  })
+  coverPhoto: Express.Multer.File;
+
+  @ApiProperty({
+    type: 'array',
+    items: { type: 'string', format: 'binary' },
+    description: 'Array of establishment photos (max 8)',
+    maxItems: 8,
+    minItems: 1,
+  })
+  photos: Express.Multer.File[];
 }
