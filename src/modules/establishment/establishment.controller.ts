@@ -4,6 +4,7 @@ import { EstablishmentOwnerGuard } from '@common/guard/establishment-owner.guard
 import { JwtAuthGuard } from '@common/guard/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '@common/guard/jwt-optional-auth.guard';
 import { RolesGuard } from '@common/guard/jwt-roles.guard';
+import { FileFieldsUploadInterceptor } from '@common/interceptor/file-fields-upload.interceptor';
 import { PageOptionsDto } from '@common/pagination/dto/page-options.dto';
 import { PageDto } from '@common/pagination/dto/page.dto';
 import { CreateEstablishmentDto } from '@modules/establishment/dto/create-establishment.dto';
@@ -24,7 +25,6 @@ import {
   UseInterceptors,
   UploadedFiles,
 } from '@nestjs/common';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -47,12 +47,7 @@ export class EstablishmentController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create establishment' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'coverPhoto', maxCount: 1 },
-      { name: 'photos', maxCount: 8 },
-    ])
-  )
+  @UseInterceptors(FileFieldsUploadInterceptor)
   @ApiCreatedResponse({ description: 'Create success', type: Establishment })
   @ApiBadRequestResponse({ description: 'Bad request data' })
   @ApiUnauthorizedResponse({ description: 'Not authenticated' })
@@ -144,12 +139,7 @@ export class EstablishmentController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update establishment information' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'coverPhoto', maxCount: 1 },
-      { name: 'photos', maxCount: 8 },
-    ])
-  )
+  @UseInterceptors(FileFieldsUploadInterceptor)
   @ApiOkResponse({
     description: 'Establishment updated successfully',
     type: Establishment,

@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
 import {
   IsString,
   IsNotEmpty,
@@ -33,6 +34,7 @@ export class CreateEstablishmentDto {
   })
   description: string;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   @ApiProperty({
@@ -41,6 +43,9 @@ export class CreateEstablishmentDto {
   })
   totalSeats: number;
 
+  @Transform(({ value }) =>
+    Array.isArray(value) ? value.map(Number) : [Number(value)]
+  )
   @IsArray()
   @IsOptional()
   @ApiProperty({
@@ -50,6 +55,7 @@ export class CreateEstablishmentDto {
   })
   featureIds?: number[];
 
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   @ApiProperty({
