@@ -75,6 +75,15 @@ export class EstablishmentService {
       totalSeats: createEstablishmentDto.totalSeats,
     };
 
+    if (
+      !createEstablishmentDto.coverPhoto ||
+      !createEstablishmentDto.photos?.length
+    ) {
+      throw new BadRequestException(
+        'Cover photo and at least one establishment photo are required'
+      );
+    }
+
     if (createEstablishmentDto.coverPhoto) {
       establishmentData.coverPhoto = this.fileUploadService.getFileUrl(
         createEstablishmentDto.coverPhoto.filename
