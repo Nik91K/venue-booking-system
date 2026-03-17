@@ -20,13 +20,20 @@ export class UpdateEstablishmentDto {
   name?: string;
 
   @IsString()
-  @IsNotEmpty()
   @IsOptional()
-  @ApiProperty({
-    example: 'Haharina St, 29, Cherkasy, Cherkasy Oblast, 18000',
-    description: 'Address of the establishment',
-  })
-  address?: string;
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  street?: string;
+
+  @IsString()
+  @IsOptional()
+  building?: string;
+
+  @IsString()
+  @IsOptional()
+  zipCode?: string;
 
   @IsString()
   @IsNotEmpty()

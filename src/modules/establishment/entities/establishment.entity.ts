@@ -30,6 +30,22 @@ export class Establishment {
   @Column({ type: 'text' })
   address: string;
 
+  @Column({ type: 'jsonb', nullable: true })
+  locationDetails: {
+    city: string;
+    street: string;
+    building: string;
+    zipCode?: string;
+  } | null;
+
+  @Index()
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  lat: number | null;
+
+  @Index()
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  lng: number | null;
+
   @Column({ type: 'text' })
   description: string;
 

@@ -1,4 +1,5 @@
 import { EstablishmentOwnerGuard } from '@common/guard/establishment-owner.guard';
+import { GeocodingService } from '@common/services/geocoding.service';
 import { establishmentUploadService } from '@config/uploads/establishment.config';
 import { AuthModule } from '@modules/auth/auth.module';
 import { Comment } from '@modules/comment/entities/comment.entity';
@@ -27,6 +28,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     EstablishmentService,
     EstablishmentOwnerGuard,
     establishmentUploadService,
+    GeocodingService,
   ],
   exports: [EstablishmentService],
 })

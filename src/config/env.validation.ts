@@ -6,6 +6,8 @@ export const validationSchema = Joi.object({
   JWT_REFRESH_SECRET: Joi.string().required(),
   JWT_ACCESS_EXPIRES_IN: Joi.number().required(),
   JWT_REFRESH_EXPIRES_IN: Joi.number().required(),
+  // Google maps API
+  GOOGLE_MAPS_API_KEY: Joi.string().required(),
   // Uploads
   UPLOADS_ESTABLISHMENTS_PATH: Joi.string().required(),
   UPLOADS_PATH: Joi.string().default('uploads'),

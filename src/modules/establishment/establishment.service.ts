@@ -5,6 +5,7 @@ import {
 } from '@common/pagination/dto/page-options.dto';
 import { PageDto } from '@common/pagination/dto/page.dto';
 import { FileUploadService } from '@common/services/file-upload.service';
+import { GeocodingService } from '@common/services/geocoding.service';
 import { CreateEstablishmentDto } from '@modules/establishment/dto/create-establishment.dto';
 import { UpdateEstablishmentDto } from '@modules/establishment/dto/update-establishment.dto';
 import { Establishment } from '@modules/establishment/entities/establishment.entity';
@@ -42,7 +43,8 @@ export class EstablishmentService {
     private typeRepository: Repository<EstablishmentType>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    private fileUploadService: FileUploadService
+    private fileUploadService: FileUploadService,
+    private readonly geocodingService: GeocodingService
   ) {
     this.MINIMUM_COMMENTS =
       this.configService.getOrThrow<number>('MINIMUM_COMMENTS');
@@ -68,11 +70,26 @@ export class EstablishmentService {
   }
 
   async create(createEstablishmentDto: CreateEstablishmentDto, userId: number) {
+    const address = `${createEstablishmentDto.city}, ${createEstablishmentDto.street} ${createEstablishmentDto.building}${
+      createEstablishmentDto.zipCode
+        ? `, ${createEstablishmentDto.zipCode}`
+        : ''
+    }`;
+
+    const coords = await this.geocodingService.geocode(address);
+
     const establishmentData: Partial<Establishment> = {
       name: createEstablishmentDto.name,
-      address: createEstablishmentDto.address,
+      locationDetails: {
+        city: createEstablishmentDto.city,
+        street: createEstablishmentDto.street,
+        building: createEstablishmentDto.building,
+        zipCode: createEstablishmentDto.zipCode,
+      },
       description: createEstablishmentDto.description,
       totalSeats: createEstablishmentDto.totalSeats,
+      lat: coords?.lat ?? null,
+      lng: coords?.lng ?? null,
     };
 
     if (
@@ -121,6 +138,43 @@ export class EstablishmentService {
     establishment.owner = user;
 
     return this.establishmentRepository.save(establishment);
+  }
+
+  async getNearby(lat: number, lng: number, radiusKm: number, userId?: number) {
+    const distance = `
+      6371 * acos(
+        cos(radians(:lat)) * cos(radians(e.lat)) *
+        cos(radians(e.lng) - radians(:lng)) +
+        sin(radians(:lat)) * sin(radians(e.lat))
+      )
+    `;
+
+    let favoriteIds: number[] = [];
+
+    if (userId) {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        select: ['favorites'],
+      });
+
+      favoriteIds = user?.favorites ?? [];
+    }
+
+    const establishments = await this.establishmentRepository
+      .createQueryBuilder('e')
+      .where(`${distance} < :radius`, {
+        lat,
+        lng,
+        radius: radiusKm,
+      })
+      .andWhere('e.lat IS NOT NULL AND e.lng IS NOT NULL')
+      .orderBy(distance, 'ASC')
+      .getMany();
+
+    return establishments.map(establishment => ({
+      ...establishment,
+      isFavorite: favoriteIds.includes(establishment.id),
+    }));
   }
 
   // Query builder to get establishments with their metrics
@@ -300,10 +354,53 @@ export class EstablishmentService {
       );
     }
 
-    if (updateEstablishmentDto.photos) {
+    if (updateEstablishmentDto.photos !== undefined) {
       establishment.photos = updateEstablishmentDto.photos.map(photo =>
         this.fileUploadService.getFileUrl(photo.filename)
       );
+    }
+
+    const locationChanged =
+      updateEstablishmentDto.city !== undefined ||
+      updateEstablishmentDto.street !== undefined ||
+      updateEstablishmentDto.building !== undefined ||
+      updateEstablishmentDto.zipCode !== undefined;
+
+    if (locationChanged) {
+      const city =
+        updateEstablishmentDto.city ?? establishment.locationDetails?.city;
+      const street =
+        updateEstablishmentDto.street ?? establishment.locationDetails?.street;
+      const building =
+        updateEstablishmentDto.building ??
+        establishment.locationDetails?.building;
+      const zipCode =
+        updateEstablishmentDto.zipCode ??
+        establishment.locationDetails?.zipCode;
+
+      if (!city || !street || !building) {
+        throw new BadRequestException(
+          'city, street, and building are required to update establishment location'
+        );
+      }
+
+      const locationDetails: NonNullable<Establishment['locationDetails']> = {
+        city,
+        street,
+        building,
+        ...(zipCode ? { zipCode } : {}),
+      };
+
+      const address = `${locationDetails.city}, ${locationDetails.street} ${locationDetails.building}${
+        locationDetails.zipCode ? `, ${locationDetails.zipCode}` : ''
+      }`;
+
+      const coords = await this.geocodingService.geocode(address);
+
+      establishment.address = address;
+      establishment.locationDetails = locationDetails;
+      establishment.lat = coords?.lat ?? null;
+      establishment.lng = coords?.lng ?? null;
     }
 
     if (updateEstablishmentDto.typeId) {

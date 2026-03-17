@@ -20,11 +20,19 @@ export class CreateEstablishmentDto {
 
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({
-    example: 'Haharina St, 29, Cherkasy, Cherkasy Oblast, 18000',
-    description: 'Address of the establishment',
-  })
-  address: string;
+  city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  street: string;
+
+  @IsString()
+  @IsNotEmpty()
+  building: string;
+
+  @IsOptional()
+  @IsString()
+  zipCode?: string;
 
   @IsString()
   @IsNotEmpty()

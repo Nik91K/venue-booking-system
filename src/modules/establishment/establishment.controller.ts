@@ -24,6 +24,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFiles,
+  ParseFloatPipe,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -70,6 +71,20 @@ export class EstablishmentController {
     }
 
     return this.establishmentService.create(createEstablishmentDto, user.id);
+  }
+
+  @Get('nearby')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Find nearby establishments' })
+  @ApiOkResponse({ description: 'List of all establishments', type: PageDto })
+  async getNearby(
+    @Query('lat', ParseFloatPipe) lat: number,
+    @Query('lng', ParseFloatPipe) lng: number,
+    @Query('radius', ParseFloatPipe) radius: number,
+    @CurrentUser() user?: User
+  ) {
+    return this.establishmentService.getNearby(lat, lng, radius, user?.id);
   }
 
   @Get()
