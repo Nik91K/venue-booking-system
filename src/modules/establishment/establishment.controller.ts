@@ -82,9 +82,16 @@ export class EstablishmentController {
     @Query('lat', ParseFloatPipe) lat: number,
     @Query('lng', ParseFloatPipe) lng: number,
     @Query('radius', ParseFloatPipe) radius: number,
+    @Query() pageOptionsDto: PageOptionsDto,
     @CurrentUser() user?: User
   ) {
-    return this.establishmentService.getNearby(lat, lng, radius, user?.id);
+    return this.establishmentService.getNearby(
+      lat,
+      lng,
+      radius,
+      pageOptionsDto,
+      user?.id
+    );
   }
 
   @Get()

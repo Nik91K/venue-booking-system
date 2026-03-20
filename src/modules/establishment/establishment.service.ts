@@ -140,7 +140,13 @@ export class EstablishmentService {
     return this.establishmentRepository.save(establishment);
   }
 
-  async getNearby(lat: number, lng: number, radiusKm: number, userId?: number) {
+  async getNearby(
+    lat: number,
+    lng: number,
+    radiusKm: number,
+    pageOptionsDto: PageOptionsDto,
+    userId?: number
+  ) {
     const distance = `
       6371 * acos(
         cos(radians(:lat)) * cos(radians(e.lat)) *
@@ -156,25 +162,26 @@ export class EstablishmentService {
         where: { id: userId },
         select: ['favorites'],
       });
-
       favoriteIds = user?.favorites ?? [];
     }
 
-    const establishments = await this.establishmentRepository
+    const queryBuilder = this.establishmentRepository
       .createQueryBuilder('e')
-      .where(`${distance} < :radius`, {
-        lat,
-        lng,
-        radius: radiusKm,
-      })
-      .andWhere('e.lat IS NOT NULL AND e.lng IS NOT NULL')
-      .orderBy(distance, 'ASC')
-      .getMany();
+      .where(`${distance} < :radius`, { lat, lng, radius: radiusKm })
+      .andWhere('e.lat IS NOT NULL AND e.lng IS NOT NULL');
 
-    return establishments.map(establishment => ({
-      ...establishment,
-      isFavorite: favoriteIds.includes(establishment.id),
-    }));
+    if (pageOptionsDto.search) {
+      queryBuilder.andWhere(
+        '(LOWER(e.name) LIKE LOWER(:search) OR LOWER(e.address) LIKE LOWER(:search) OR CAST(e.id AS TEXT) LIKE :search)',
+        { search: `%${pageOptionsDto.search}%` }
+      );
+    }
+
+    queryBuilder.orderBy(distance, pageOptionsDto.order);
+
+    const establishments = await queryBuilder.getMany();
+
+    return establishments;
   }
 
   // Query builder to get establishments with their metrics
