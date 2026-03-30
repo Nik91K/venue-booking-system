@@ -152,7 +152,7 @@ export class CommentService {
   async remove(id: number, userId: number, userRole: UserRole) {
     const comment = await this.commentRepository.findOne({
       where: { id },
-      relations: ['establishment'],
+      relations: ['establishment', 'establishment.moderators'],
     });
 
     if (!comment) throw new NotFoundException(`Comment ${id} not found`);

@@ -306,6 +306,9 @@ export class EstablishmentService {
     const establishment = await this.establishmentRepository.findOne({
       where: { id },
       relations: ['type', 'features', 'comments', 'comments.user'],
+      loadRelationIds: {
+        relations: ['moderators'],
+      },
     });
 
     if (!establishment) {
