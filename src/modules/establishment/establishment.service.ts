@@ -70,16 +70,13 @@ export class EstablishmentService {
   }
 
   async create(createEstablishmentDto: CreateEstablishmentDto, userId: number) {
-    const address = `${createEstablishmentDto.city}, ${createEstablishmentDto.street} ${createEstablishmentDto.building}${
-      createEstablishmentDto.zipCode
-        ? `, ${createEstablishmentDto.zipCode}`
-        : ''
-    }`;
+    const address = `${createEstablishmentDto.city}, ${createEstablishmentDto.street} ${createEstablishmentDto.building}}`;
 
     const coords = await this.geocodingService.geocode(address);
 
     const establishmentData: Partial<Establishment> = {
       name: createEstablishmentDto.name,
+      address,
       locationDetails: {
         city: createEstablishmentDto.city,
         street: createEstablishmentDto.street,

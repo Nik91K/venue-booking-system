@@ -59,7 +59,7 @@ export class EstablishmentSeeder {
         owner: faker.helpers.arrayElement(owners),
         moderators: faker.helpers.arrayElements(moderators, 3),
         type: faker.helpers.arrayElement(types),
-        coverPhoto: 'https://placehold.co/600x400',
+        coverPhoto: faker.image.urlPicsumPhotos({ width: 800, height: 600 }),
         photos: Array.from({ length: 5 }, () =>
           faker.image.urlPicsumPhotos({ width: 600, height: 400 })
         ),

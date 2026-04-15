@@ -90,7 +90,7 @@ export class Establishment {
   @ApiProperty()
   ownerId: number;
 
-  @ManyToOne(() => User, { eager: false })
+  @ManyToOne(() => User, { eager: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'ownerId' })
   owner: User;
 
