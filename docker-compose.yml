@@ -1,0 +1,64 @@
+services:
+  web:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8000:3000"
+    environment:
+      DB_TYPE: ${DB_TYPE}
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+      UPLOADS_ESTABLISHMENTS_PATH: ${UPLOADS_ESTABLISHMENTS_PATH}
+      UPLOADS_PATH: ${UPLOADS_PATH}
+      MINIMUM_COMMENTS: ${MINIMUM_COMMENTS}
+      GLOBAL_AVERAGE_RATING: ${GLOBAL_AVERAGE_RATING}
+    volumes:
+      - ./src:/usr/src/app/src
+      - ./uploads:/usr/src/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - appnet
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - appnet
+    restart: unless-stopped
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui:v5.19.0 
+    ports:
+      - "8081:8080"
+    environment:
+      API_URL: http://localhost:8000/api-json
+    depends_on:
+      - web
+
+networks:
+  appnet:
+ 
+volumes:
+  db_data:
