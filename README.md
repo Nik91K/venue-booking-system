@@ -1,142 +1,207 @@
-# Table Booking System
+# Venue Booking System Backend
 
-A full-featured table booking system for restaurants and establishments, allowing users to reserve tables, leave comments, and manage their bookings.
+A production-ready, full-featured venue and table booking system backend built with NestJS, TypeORM, and PostgreSQL. It allows users to search establishments, find nearby venues using Google Maps geolocation, reserve tables, manage business operating hours, custom features/amenities, leave reviews, and assign moderators to assist owners.
 
-## Features
+## Key Features
 
-- Browse and search establishments
-- Reserve tables at restaurants
-- Leave reviews and comments
-- User authentication and profile management
-- Automated avatar generation using DiceBear API
-- Secure JWT-based authentication
+- **User Profile & Authentication**: Secure JWT-based authentication (with Access/Refresh token rotation), custom avatar uploads, or automated avatar generation via DiceBear API.
+- **Role-Based Access Control (RBAC)**: Support for four distinct user roles (`USER`, `MODERATOR`, `OWNER`, `SUPER_ADMIN`) with custom guards.
+- **Venue & Establishment Management**: Full support for creating and updating establishments, uploading cover photos and multi-image galleries (multipart/form-data).
+- **Geolocation & Nearby Venues**: Retrieve venues within a specified distance (radius in kilometers) of lat/lng coordinates using the integrated Google Maps Geocoding API.
+- **Moderator Assignment**: Venue owners can add and remove moderators to help manage customer feedback and reviews.
+- **Working Hours & Schedules**: Flexible operating schedules and business hours management per establishment.
+- **Custom Features & Amenities**: Dynamic categorization and venue tagging (e.g., WiFi, Parking, Kids Area) with custom icons support.
+- **Review & Comments System**: User-generated comments, ratings, and reviews on establishments.
+- **Interactive Swagger Documentation**: Full API spec exposed interactively, making integration straightforward.
+- **Containerization**: Fully containerized environment with Docker and Docker Compose configured for development and production.
+
+---
 
 ## Prerequisites
 
-- Node.js (v16 or higher)
-- npm or yarn
-- PostgreSQL (v12 or higher)
+- **Node.js**: `v20` or higher
+- **PostgreSQL**: `v16` or higher (if running locally without Docker)
+- **Google Maps API Key**: Required for geocoding addresses and coordinates
 
-## Installation
+---
 
-1. **Clone the repository**
+## Environment Variables Reference
 
-   ```bash
-   git clone <repository-url>
-   cd <project-directory>
-   ```
+Copy `.env.example` to `.env` and fill in your local settings:
+```bash
+cp .env.example .env
+```
 
-2. **Install dependencies**
+| Variable | Description | Example / Default | Required / Validation |
+| :--- | :--- | :--- | :--- |
+| `DB_TYPE` | Type of DBMS | `postgres` | Yes (in `database.config`) |
+| `DB_HOST` | Database host | `localhost` (use `db` inside Docker) | Yes |
+| `DB_PORT` | Database port | `5432` | Yes |
+| `DB_USERNAME` | Database username | `postgres` | Yes |
+| `DB_PASSWORD` | Database password | `postgres` | Yes |
+| `DB_DATABASE` | Database name | `venue_booking_system` | Yes |
+| `GOOGLE_MAPS_API_KEY` | Google Maps Platform API key | `AIzaSy...` | Yes |
+| `JWT_ACCESS_SECRET` | Secret key for access token signing | `your_access_secret_here` | Yes |
+| `JWT_REFRESH_SECRET` | Secret key for refresh token signing | `your_refresh_secret_here` | Yes |
+| `JWT_ACCESS_EXPIRES_IN` | Access token lifespan (in **seconds**) | `900` (15 mins) | Yes (Must be a number) |
+| `JWT_REFRESH_EXPIRES_IN`| Refresh token lifespan (in **seconds**) | `604800` (7 days) | Yes (Must be a number) |
+| `UPLOADS_PATH` | Base path for media uploads | `uploads` | Default is `uploads` |
+| `UPLOADS_ESTABLISHMENTS_PATH`| Path prefix for establishment photos | `uploads/establishments` | Yes |
+| `MINIMUM_COMMENTS` | Threshold for rating metric computations | `3` | Yes |
+| `GLOBAL_AVERAGE_RATING`| Fallback rating if reviews are insufficient | `1` | Yes |
+| `FRONTEND_URL` | Allowed CORS origin URL | `http://localhost:5173` | Optional |
 
+---
+
+## Getting Started
+
+### Method 1: Local Development
+
+1. **Install dependencies**:
    ```bash
    npm install
    ```
 
-3. **Set up environment variables**
-
-   Copy the example environment file and configure it
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   Edit `.env` and fill in your configuration:
-
-   ```env
-   # Database Configuration
-   DB_TYPE=postgres
-   DB_HOST=localhost          # Your database host
-   DB_PORT=5432              # Your database port
-   DB_USERNAME=your_username # Your database username
-   DB_PASSWORD=your_password # Your database password
-   DB_DATABASE=booking_db    # Your database name
-
-   # JWT Configuration
-   JWT_ACCESS_SECRET=your_secure_access_secret_here
-   JWT_REFRESH_SECRET=your_secure_refresh_secret_here
-   JWT_ACCESS_EXPIRES_IN=15m
-   JWT_REFRESH_EXPIRES_IN=7d
-   ```
-
-4. **Initialize the database**
-
-   This command will delete the existing database, recreate it, and seed it with sample data (users, establishments, comments, etc...)
-
+2. **Initialize & Seed Database**:
+   > **Warning**: Seeding will drop the existing database, synchronize schemas, and populate sample users, types, establishments, comments, and working schedules.
    ```bash
    npm run seed
    ```
 
-   > ⚠️ **Warning**: `npm run seed` will delete all existing data in your database!
+3. **Start the application**:
+   - **Development (watch mode)**:
+     ```bash
+     npm run start:dev
+     ```
+   - **Production Mode (build and run)**:
+     ```bash
+     npm run build
+     npm run start:prod
+     ```
+   - **Debug Mode**:
+     ```bash
+     npm run start:debug
+     ```
 
-## Running the Application
+---
 
-### Development Mode
+### Method 2: Docker Compose (Quickstart)
 
-```bash
-npm run dev
-```
+This compiles the NestJS app (running in watch mode by default) and mounts a PostgreSQL database container.
 
-### Production Mode
+1. **Build and run the stack**:
+   ```bash
+   docker-compose up --build
+   ```
+2. **Access paths**:
+   - The application will be reachable at `http://localhost:8000`
+   - An independent Swagger UI interface will boot up at `http://localhost:8081`
 
-```bash
-npm run build
-npm start
-```
+---
 
-## Database Seeding
+## API Documentation (Swagger)
 
-```bash
-npm run seed
-```
+When running, the interactive Swagger UI and schemas are served at:
+- **Swagger Interactive UI**: `http://localhost:3000/api` (or `http://localhost:8000/api` under Docker Compose)
+- **Swagger JSON Spec**: `http://localhost:3000/api-json` (or `http://localhost:8000/api-json` under Docker Compose)
 
-## Avatar Generation
+---
 
-The application uses the [DiceBear API](https://api.dicebear.com/) to generate unique avatars for users. Avatars are generated using the "thumbs" style:
+## Role Permissions Matrix
 
-```typescript
-https://api.dicebear.com/7.x/thumbs/svg?seed={unique_seed}
-```
+The backend enforces role guards for endpoints based on user roles:
 
-## API Endpoints
+| Action / Resource | Guest (No JWT) | USER | MODERATOR | OWNER | SUPER_ADMIN |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Browse venues / check schedules | Yes | Yes | Yes | Yes | Yes |
+| Book a table / Favorite a venue | | Yes | Yes | Yes | Yes |
+| Manage working schedules for venue | | | | Owner of venue | Yes |
+| Assign / Remove venue moderators | | | | Owner of venue | Yes |
+| Add new Custom Features/Amenities | | | | | Yes |
+| Delete comments | | | If assigned to venue | If owner of venue | Yes |
+| Update user profiles & roles | | | | | Yes |
 
-### Authentication
+---
 
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login user
+## API Endpoints Reference
+
+### Authentication (`/auth`)
+- `POST /auth/register` - Register a new user profile
+- `POST /auth/login` - Login user (returns access and refresh tokens)
 - `POST /auth/refresh` - Refresh access token
 - `POST /auth/logout` - Logout user
 
-### Establishments
+### User Profiles (`/users`)
+- `GET /users/me` - Get current authenticated user profile
+- `PATCH /users/me` - Update current user profile (supports avatar upload)
+- `GET /users/:id` - Get public user details by ID
+- `GET /users` - Get list of all users with pagination (SUPER_ADMIN only)
+- `PATCH /users/:id` - Update any user profile/role (SUPER_ADMIN only)
+- `DELETE /users/:id` - Delete user by ID (SUPER_ADMIN only)
 
-- `GET /establishments` - Get all establishments
-- `GET /establishments/:id` - Get establishment by ID
-- `POST /establishments` - Create new establishment (admin)
+### Establishments (`/establishment`)
+- `GET /establishment` - Get all establishments (paginated)
+- `GET /establishment/nearby` - Get establishments within a certain radius of coordinates using Google Maps
+- `GET /establishment/favorites` - Get favorite establishments for the logged-in user
+- `GET /establishment/me` - Get establishments owned by the current OWNER
+- `GET /establishment/:id` - Get establishment by ID
+- `GET /establishment/:id/comments` - Retrieve comments for an establishment
+- `POST /establishment` - Create an establishment (OWNER/SUPER_ADMIN, multipart upload)
+- `PATCH /establishment/:id` - Update establishment information (Establishment Owner only)
+- `DELETE /establishment/:id` - Delete establishment (Establishment Owner only)
+- `POST /establishment/:id/features/:featureId` - Add feature/amenity tag to establishment
+- `DELETE /establishment/:id/features/:featureId` - Remove feature/amenity tag from establishment
+- `POST /establishment/:id/favorite` - Add establishment to favorites
+- `DELETE /establishment/:id/favorite` - Remove establishment from favorites
+- `GET /establishment/:id/moderators` - List moderators assigned to this establishment
+- `POST /establishment/:id/moderators/:userId` - Add a moderator to the establishment (Owner only)
+- `DELETE /establishment/:id/moderators/:userId` - Remove moderator from the establishment (Owner only)
 
-### Bookings
+### Bookings & Reservations (`/booking`)
+- `POST /booking` - Create a reservation (Rate-limited, JWT required)
+- `GET /booking` - Retrieve all bookings in the system
+- `GET /booking/my-bookings` - Get bookings created by the current user
+- `GET /booking/establishment/:establishmentId` - Get all bookings for a specific establishment
+- `GET /booking/:id` - Get details of a booking by ID
 
-- `GET /bookings` - Get user's bookings
-- `POST /bookings` - Create new booking
-- `PUT /bookings/:id` - Update booking
-- `DELETE /bookings/:id` - Cancel booking
+### Reviews & Comments (`/comment`)
+- `POST /comment` - Add a new comment and rating to an establishment
+- `GET /comment/comments` - Get all comments (paginated)
+- `GET /comment/establishment/:id` - Get comments for an establishment (paginated)
+- `PATCH /comment/:id` - Update an existing comment
+- `DELETE /comment/:id` - Delete comment (Requires role SUPER_ADMIN, MODERATOR assigned to the venue, or OWNER of the venue)
 
-### Comments
+### Establishment Types (`/establishment-type`)
+- `GET /establishment-type` - Get all establishment categories
+- `GET /establishment-type/:id` - Get specific type details by ID
+- `POST /establishment-type` - Create a category (SUPER_ADMIN only)
+- `PATCH /establishment-type/:id` - Update category (SUPER_ADMIN only)
+- `DELETE /establishment-type/:id` - Delete category (SUPER_ADMIN only)
 
-- `GET /establishments/:id/comments` - Get establishment comments
-- `POST /establishments/:id/comments` - Add comment
-- `PUT /comments/:id` - Update comment
-- `DELETE /comments/:id` - Delete comment
+### Venue Features & Amenities (`/features`)
+- `GET /features` - Get all features (e.g. WiFi, Parking)
+- `GET /features/:id` - Get feature details by ID
+- `POST /features` - Create feature (supports icon image upload)
+- `PATCH /features/:id` - Update feature metadata and icon
+- `DELETE /features/:id` - Delete feature
 
-## Environment Variables Reference
+### Operating Schedules (`/schedule`)
+- `GET /schedule/:establishmentId` - Get daily schedules for a venue
+- `POST /schedule` - Add schedule items (Establishment Owner only)
+- `PATCH /schedule/:id` - Update a specific schedule item (Establishment Owner only)
+- `DELETE /schedule/:id` - Delete a schedule item (Establishment Owner only)
 
-| Variable                 | Description               | Example                |
-| ------------------------ | ------------------------- | ---------------------- |
-| `DB_TYPE`                | Database type             | `postgres`             |
-| `DB_HOST`                | Database host address     | `localhost`            |
-| `DB_PORT`                | Database port             | `5432`                 |
-| `DB_USERNAME`            | Database username         | `postgres`             |
-| `DB_PASSWORD`            | Database password         | `your_password`        |
-| `DB_DATABASE`            | Database name             | `booking_db`           |
-| `JWT_ACCESS_SECRET`      | Secret for access tokens  | `random_secure_string` |
-| `JWT_REFRESH_SECRET`     | Secret for refresh tokens | `random_secure_string` |
-| `JWT_ACCESS_EXPIRES_IN`  | Access token expiry       | `15m`                  |
-| `JWT_REFRESH_EXPIRES_IN` | Refresh token expiry      | `7d`                   |
+---
+
+## Testing
+
+```bash
+# Unit tests
+npm run test
+
+# End-to-end (E2E) tests
+npm run test:e2e
+
+# Test coverage report
+npm run test:cov
+```
