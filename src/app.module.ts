@@ -13,6 +13,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { LoggerModule } from 'nestjs-pino';
 
 import { SeederModule } from '@/database/seeders/seeder.module';
 
@@ -35,6 +36,38 @@ import { SeederModule } from '@/database/seeders/seeder.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
         configService.get('database') as TypeOrmModuleOptions,
+    }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? {
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  singleLine: true,
+                  messageFormat: '{msg}',
+                  translateTime: false,
+                  ignore: 'req,res,responseTime,pid,hostname',
+                },
+              }
+            : undefined,
+
+        level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
+
+        serializers: {
+          req: req => ({ method: req.method, url: req.url }),
+          res: res => ({ statusCode: res.statusCode }),
+        },
+
+        customSuccessMessage: (req, res, responseTime) => {
+          return `${req.method} ${req.url} completed with status ${res.statusCode} in ${responseTime}ms`;
+        },
+
+        customErrorMessage: (req, res, err) => {
+          return `${req.method} ${req.url} failed with status ${res.statusCode} - Error: ${err.message}`;
+        },
+      },
     }),
     EstablishmentModule,
     CommentModule,

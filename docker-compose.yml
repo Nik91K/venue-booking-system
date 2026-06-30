@@ -6,6 +6,7 @@ services:
     ports:
       - "8000:3000"
     environment:
+      NODE_ENV: ${NODE_ENV}
       DB_TYPE: ${DB_TYPE}
       DB_HOST: db
       DB_PORT: ${DB_PORT}
