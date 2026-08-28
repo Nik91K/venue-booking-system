@@ -1,6 +1,8 @@
 # Venue Booking System Backend
 
-A production-ready, full-featured venue and table booking system backend built with NestJS, TypeORM, and PostgreSQL. It allows users to search establishments, find nearby venues using Google Maps geolocation, reserve tables, manage business operating hours, custom features/amenities, leave reviews, and assign moderators to assist owners.
+> **Note**: This repository contains the **Backend API** built with NestJS. The **Frontend** client application can be found here: [venue-booking-frontend](https://github.com/notnikbtw/venue-booking-frontend).
+
+A full-featured venue and table booking system backend built with NestJS, TypeORM, and PostgreSQL. It allows users to search establishments, find nearby venues using Google Maps geolocation, reserve tables, manage business operating hours, custom features/amenities, leave reviews, and assign moderators to assist owners.
 
 ## Key Features
 
@@ -13,7 +15,7 @@ A production-ready, full-featured venue and table booking system backend built w
 - **Custom Features & Amenities**: Dynamic categorization and venue tagging (e.g., WiFi, Parking, Kids Area) with custom icons support.
 - **Review & Comments System**: User-generated comments, ratings, and reviews on establishments.
 - **Interactive Swagger Documentation**: Full API spec exposed interactively, making integration straightforward.
-- **Containerization**: Fully containerized environment with Docker and Docker Compose configured for development and production.
+- **Containerization & CI/CD**: Fully containerized environment with Docker and Docker Compose for development, alongside GitHub Actions (GHCR) and Watchtower for automated server deployment.
 
 ---
 
@@ -50,13 +52,14 @@ cp .env.example .env
 | `UPLOADS_ESTABLISHMENTS_PATH` | Path prefix for establishment photos        | `uploads/establishments`             | Yes                       |
 | `MINIMUM_COMMENTS`            | Threshold for rating metric computations    | `3`                                  | Yes                       |
 | `GLOBAL_AVERAGE_RATING`       | Fallback rating if reviews are insufficient | `1`                                  | Yes                       |
-| `FRONTEND_URL`                | Allowed CORS origin URL                     | `http://localhost:5173`              | Optional                  |
+| `GHCR_USERNAME`               | GitHub username for GHCR authentication     | `your_github_username`               | For Watchtower auto-upd   |
+| `GHCR_PAT`                    | Personal Access Token with `read:packages`  | `ghp_...`                            | For Watchtower auto-upd   |
 
 ---
 
 ## Getting Started
 
-### Method 1: Local Development
+### Method 1: Local Development (Node.js)
 
 1. **Install dependencies**:
 
@@ -82,24 +85,38 @@ cp .env.example .env
      npm run build
      npm run start:prod
      ```
-   - **Debug Mode**:
-     ```bash
-     npm run start:debug
-     ```
 
 ---
 
-### Method 2: Docker Compose (Quickstart)
+### Method 2: Docker Compose (Local Development)
 
-This compiles the NestJS app (running in watch mode by default) and mounts a PostgreSQL database container.
+Runs NestJS in development mode (with hot reload) and PostgreSQL in Docker.
 
-1. **Build and run the stack**:
+1. **Start the stack**:
    ```bash
-   docker-compose up --build
+   docker compose up -d
    ```
-2. **Access paths**:
-   - The application will be reachable at `http://localhost:8000`
-   - An independent Swagger UI interface will boot up at `http://localhost:8081`
+2. **Access endpoints**:
+   - Application API: `http://localhost:8000`
+   - Swagger UI Interface: `http://localhost:8081`
+
+---
+
+## Deployment (Production & Auto-Updates in LXC/Server)
+
+The repository includes a GitHub Actions workflow (`.github/workflows/docker-publish.yml`) and a production Docker Compose configuration (`docker-compose.prod.yml`).
+
+### How CI/CD Auto-Deployment Works:
+1. **GitHub Actions**: Whenever code is pushed to `main`, GitHub Actions automatically builds the Docker image and pushes it to **GitHub Container Registry (GHCR)** as `ghcr.io/notnikbtw/venue-booking-backend:latest`.
+2. **Watchtower**: Running on your server via `docker-compose.prod.yml`, Watchtower polls GHCR periodically, downloads new images, and restarts the `web` container automatically.
+
+### Running on Server / LXC Container:
+1. Copy `docker-compose.prod.yml` and `.env` to your server directory (e.g. `/opt/venue-booking`).
+2. Fill in `.env` including your `GHCR_USERNAME` and `GHCR_PAT` (Personal Access Token with `read:packages` permission).
+3. Start the production stack:
+   ```bash
+   docker compose -f docker-compose.prod.yml up -d
+   ```
 
 ---
 
@@ -107,8 +124,8 @@ This compiles the NestJS app (running in watch mode by default) and mounts a Pos
 
 When running, the interactive Swagger UI and schemas are served at:
 
-- **Swagger Interactive UI**: `http://localhost:3000/api` (or `http://localhost:8000/api` under Docker Compose)
-- **Swagger JSON Spec**: `http://localhost:3000/api-json` (or `http://localhost:8000/api-json` under Docker Compose)
+- **Swagger Interactive UI**: `http://localhost:8000/api` (or `http://localhost:8081` via Docker Swagger UI)
+- **Swagger JSON Spec**: `http://localhost:8000/api-json`
 
 ---
 
