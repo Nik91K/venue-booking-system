@@ -15,8 +15,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
 
-import { SeederModule } from '@/database/seeders/seeder.module';
-
 @Module({
   imports: [
     ThrottlerModule.forRoot(throttlerConfig),
@@ -70,7 +68,6 @@ import { SeederModule } from '@/database/seeders/seeder.module';
     UsersModule,
     FeaturesModule,
     EstablishmentTypeModule,
-    SeederModule,
     ScheduleModule,
   ],
   controllers: [],
