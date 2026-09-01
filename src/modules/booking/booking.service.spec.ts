@@ -5,7 +5,7 @@ import { User } from '@modules/users/entities/user.entity';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 
 describe('BookingService', () => {
   let service: BookingService;
@@ -18,6 +18,13 @@ describe('BookingService', () => {
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     getRawOne: jest.fn(),
+  };
+
+  const mockEntityManager = {
+    findOne: jest.fn(),
+    save: jest.fn(),
+    create: jest.fn(),
+    createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
   };
 
   beforeEach(async () => {
@@ -44,6 +51,12 @@ describe('BookingService', () => {
             find: jest.fn(),
             findOne: jest.fn(),
             createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
+          },
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn(callback => callback(mockEntityManager)),
           },
         },
       ],
@@ -91,23 +104,26 @@ describe('BookingService', () => {
         createdAt: new Date(),
       } as unknown as Booking;
 
-      jest.spyOn(userRepository, 'findOne').mockResolvedValue(mockUser);
       jest
-        .spyOn(establishmentRepository, 'findOne')
-        .mockResolvedValue(mockEstablishment);
+        .spyOn(mockEntityManager, 'findOne')
+        .mockResolvedValueOnce(mockUser)
+        .mockResolvedValueOnce(mockEstablishment)
+        .mockResolvedValueOnce(null);
+
       jest.spyOn(mockQueryBuilder, 'getRawOne').mockResolvedValue({ sum: 0 });
       jest
-        .spyOn(bookingRepository, 'create')
+        .spyOn(mockEntityManager, 'create')
         .mockReturnValue(mockCreatedBooking as Booking);
       jest
-        .spyOn(bookingRepository, 'save')
+        .spyOn(mockEntityManager, 'save')
         .mockResolvedValue(mockCreatedBooking as Booking);
 
       const result = await service.create(createBookingDto, mockUser.id);
 
       expect(result).toEqual(mockCreatedBooking);
 
-      expect(bookingRepository.create).toHaveBeenCalledWith(
+      expect(mockEntityManager.create).toHaveBeenCalledWith(
+        Booking,
         expect.objectContaining({
           bookingDate: new Date(createBookingDto.bookingDate),
           bookingTime: createBookingDto.bookingTime,
@@ -116,34 +132,44 @@ describe('BookingService', () => {
           establishment: mockEstablishment,
         })
       );
-      expect(bookingRepository.save).toHaveBeenCalledWith(mockCreatedBooking);
+      expect(mockEntityManager.save).toHaveBeenCalledWith(mockCreatedBooking);
     });
 
     it('should throw NotFoundException if user does not exist', async () => {
-      jest.spyOn(userRepository, 'findOne').mockResolvedValue(null);
+      const mockUser = { id: 1, name: 'User' } as User;
 
-      await expect(service.create(createBookingDto, 1)).rejects.toThrow(
-        new NotFoundException('User 1 not found')
-      );
+      jest.spyOn(mockEntityManager, 'findOne').mockResolvedValueOnce(null);
 
-      expect(establishmentRepository.findOne).not.toHaveBeenCalled();
-      expect(bookingRepository.create).not.toHaveBeenCalled();
+      await expect(
+        service.create(createBookingDto, mockUser.id)
+      ).rejects.toThrow(new NotFoundException(`User ${mockUser.id} not found`));
+
+      expect(mockEntityManager.findOne).toHaveBeenCalledWith(User, {
+        where: { id: mockUser.id },
+      });
+      expect(mockEntityManager.create).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if establishment does not exist', async () => {
-      jest
-        .spyOn(userRepository, 'findOne')
-        .mockResolvedValue({ id: 1, name: 'User' } as User);
-      jest.spyOn(establishmentRepository, 'findOne').mockResolvedValue(null);
+      const mockUser = { id: 1, name: 'User' } as User;
 
-      await expect(service.create(createBookingDto, 1)).rejects.toThrow(
-        new NotFoundException('Establishment not found')
+      jest
+        .spyOn(mockEntityManager, 'findOne')
+        .mockResolvedValueOnce(mockUser)
+        .mockResolvedValueOnce(null);
+
+      await expect(
+        service.create(createBookingDto, mockUser.id)
+      ).rejects.toThrow(
+        new NotFoundException(
+          `Establishment ${createBookingDto.establishment} not found`
+        )
       );
 
-      expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { id: 1 },
+      expect(mockEntityManager.findOne).toHaveBeenCalledWith(Establishment, {
+        where: { id: createBookingDto.establishment },
       });
-      expect(bookingRepository.create).not.toHaveBeenCalled();
+      expect(mockEntityManager.create).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException if not enough seats available', async () => {
@@ -154,10 +180,12 @@ describe('BookingService', () => {
         totalSeats: 10,
       } as Establishment;
 
-      jest.spyOn(userRepository, 'findOne').mockResolvedValue(mockUser);
       jest
-        .spyOn(establishmentRepository, 'findOne')
-        .mockResolvedValue(mockEstablishment);
+        .spyOn(mockEntityManager, 'findOne')
+        .mockResolvedValueOnce(mockUser)
+        .mockResolvedValueOnce(mockEstablishment)
+        .mockResolvedValueOnce(null);
+
       jest.spyOn(mockQueryBuilder, 'getRawOne').mockResolvedValue({ sum: 9 });
 
       await expect(service.create(createBookingDto, 1)).rejects.toThrow(
@@ -173,15 +201,40 @@ describe('BookingService', () => {
         totalSeats: 1,
       } as Establishment;
 
-      jest.spyOn(userRepository, 'findOne').mockResolvedValue(mockUser);
       jest
-        .spyOn(establishmentRepository, 'findOne')
-        .mockResolvedValue(mockEstablishment);
+        .spyOn(mockEntityManager, 'findOne')
+        .mockResolvedValueOnce(mockUser)
+        .mockResolvedValueOnce(mockEstablishment)
+        .mockResolvedValueOnce(null);
+
       jest.spyOn(mockQueryBuilder, 'getRawOne').mockResolvedValue({ sum: -5 });
 
       await expect(service.create(createBookingDto, 1)).rejects.toThrow(
         new BadRequestException('Number of guests exceeds total seats (1)')
       );
+    });
+
+    it('should rollback (not save) if any error occurs during creation', async () => {
+      const mockUser = { id: 1, name: 'User' } as User;
+      const mockEstablishment = {
+        id: 1,
+        name: 'Establishment',
+        totalSeats: 10,
+      } as Establishment;
+
+      jest
+        .spyOn(mockEntityManager, 'findOne')
+        .mockResolvedValueOnce(mockUser)
+        .mockResolvedValueOnce(mockEstablishment)
+        .mockResolvedValueOnce(null);
+
+      jest.spyOn(mockQueryBuilder, 'getRawOne').mockResolvedValue({ sum: 10 });
+
+      await expect(
+        service.create(createBookingDto, mockUser.id)
+      ).rejects.toThrow();
+
+      expect(mockEntityManager.save).not.toHaveBeenCalled();
     });
   });
 
