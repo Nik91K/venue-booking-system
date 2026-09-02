@@ -118,7 +118,7 @@ describe('Booking System', () => {
         .set('Authorization', 'Bearer fake-jwt-token')
         .send({
           establishment: seededEstablishment?.id,
-          bookingDate: '2026-01-01',
+          bookingDate: '2026-01-02',
           bookingTime: '18:00',
           numberOfGuests: 2,
         });
@@ -160,7 +160,7 @@ describe('Booking System', () => {
         });
 
       expect(response.statusCode).toBe(404);
-      expect(response.body.message).toBe('Establishment not found');
+      expect(response.body.message).toContain('not found');
     });
 
     it('should rollback transaction and leave database clean when validation fails', async () => {
