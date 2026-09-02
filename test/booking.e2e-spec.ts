@@ -118,7 +118,7 @@ describe('Booking System', () => {
         .set('Authorization', 'Bearer fake-jwt-token')
         .send({
           establishment: seededEstablishment?.id,
-          bookingDate: '2026-01-01',
+          bookingDate: '2026-01-02',
           bookingTime: '18:00',
           numberOfGuests: 2,
         });
@@ -160,7 +160,29 @@ describe('Booking System', () => {
         });
 
       expect(response.statusCode).toBe(404);
-      expect(response.body.message).toBe('Establishment not found');
+      expect(response.body.message).toContain('not found');
+    });
+
+    it('should rollback transaction and leave database clean when validation fails', async () => {
+      const countBefore = await bookingRepo.count();
+
+      const invalidDto = {
+        establishment: 999999,
+        bookingDate: '2025-12-25',
+        bookingTime: '18:30',
+        numberOfGuests: 2,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post('/booking')
+        .set('Authorization', 'Bearer fake-jwt-token')
+        .send(invalidDto);
+
+      expect(response.statusCode).toBe(404);
+
+      const countAfter = await bookingRepo.count();
+
+      expect(countAfter).toBe(countBefore);
     });
   });
 

@@ -11,7 +11,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 
 @Injectable()
 export class BookingService {
@@ -21,75 +21,97 @@ export class BookingService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(Establishment)
-    private establishmentRepository: Repository<Establishment>
+    private establishmentRepository: Repository<Establishment>,
+    private dataSource: DataSource
   ) {}
 
   async create(
     createBookingDto: CreateBookingDto,
     userId: number
   ): Promise<Booking> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException(`User ${userId} not found`);
-    }
+    return await this.dataSource.transaction(async manager => {
+      const user = await manager.findOne(User, { where: { id: userId } });
 
-    const establishment = await this.establishmentRepository.findOne({
-      where: { id: createBookingDto.establishment },
+      if (!user) {
+        throw new NotFoundException(`User ${userId} not found`);
+      }
+
+      const establishment = await manager.findOne(Establishment, {
+        where: { id: createBookingDto.establishment },
+      });
+
+      if (!establishment) {
+        throw new NotFoundException(
+          `Establishment ${createBookingDto.establishment} not found`
+        );
+      }
+
+      function addHoursToTime(time: string, hours: number): string {
+        const [h, m] = time.split(':').map(Number);
+        const date = new Date(1970, 0, 1, h, m);
+        date.setHours(date.getHours() + hours);
+        return date.toTimeString().slice(0, 5);
+      }
+
+      const timeFrom = addHoursToTime(createBookingDto.bookingTime, -1);
+      const timeTo = addHoursToTime(createBookingDto.bookingTime, 1);
+
+      const existingBooking = await manager.findOne(Booking, {
+        where: {
+          establishment: { id: createBookingDto.establishment },
+          bookingDate: new Date(createBookingDto.bookingDate),
+          bookingTime: createBookingDto.bookingTime,
+          status: BookingStatus.CONFIRMED,
+        },
+      });
+
+      if (existingBooking) {
+        throw new BadRequestException('Booking already exists');
+      }
+
+      const seatsRequested = await manager
+        .createQueryBuilder(Booking, 'booking')
+        .select('SUM(booking.numberOfGuests)', 'sum')
+        .where('booking.establishmentId = :establishmentId', {
+          establishmentId: createBookingDto.establishment,
+        })
+        .andWhere('booking.bookingDate = :bookingDate', {
+          bookingDate: createBookingDto.bookingDate,
+        })
+        .andWhere('booking.bookingTime BETWEEN :from AND :to', {
+          from: timeFrom,
+          to: timeTo,
+        })
+        .andWhere('booking.status = :status', {
+          status: BookingStatus.CONFIRMED,
+        })
+        .getRawOne();
+
+      if (
+        parseInt(seatsRequested.sum || '0') + createBookingDto.numberOfGuests >
+        establishment.totalSeats
+      ) {
+        throw new BadRequestException('Not enough seats available');
+      }
+
+      const numberOfGuests = createBookingDto.numberOfGuests;
+
+      if (numberOfGuests > establishment.totalSeats) {
+        throw new BadRequestException(
+          `Number of guests exceeds total seats (${establishment.totalSeats})`
+        );
+      }
+
+      const booking = manager.create(Booking, {
+        user,
+        establishment,
+        bookingDate: new Date(createBookingDto.bookingDate),
+        bookingTime: createBookingDto.bookingTime,
+        numberOfGuests: createBookingDto.numberOfGuests,
+      });
+
+      return await manager.save(booking);
     });
-    if (!establishment) {
-      throw new NotFoundException('Establishment not found');
-    }
-
-    function addHoursToTime(time: string, hours: number): string {
-      const [h, m] = time.split(':').map(Number);
-      const date = new Date(1970, 0, 1, h, m);
-      date.setHours(date.getHours() + hours);
-      return date.toTimeString().slice(0, 5);
-    }
-
-    const timeFrom = addHoursToTime(createBookingDto.bookingTime, -1);
-    const timeTo = addHoursToTime(createBookingDto.bookingTime, 1);
-
-    const seatsRequested = await this.bookingRepository
-      .createQueryBuilder('booking')
-      .select('SUM(booking.numberOfGuests)', 'sum')
-      .where('booking.establishmentId = :establishmentId', {
-        establishmentId: createBookingDto.establishment,
-      })
-      .andWhere('booking.bookingDate = :bookingDate', {
-        bookingDate: createBookingDto.bookingDate,
-      })
-      .andWhere('booking.bookingTime BETWEEN :from AND :to', {
-        from: timeFrom,
-        to: timeTo,
-      })
-      .andWhere('booking.status = :status', { status: BookingStatus.CONFIRMED })
-      .getRawOne();
-
-    if (
-      parseInt(seatsRequested.sum) + createBookingDto.numberOfGuests >
-      establishment.totalSeats
-    ) {
-      throw new BadRequestException('Not enough seats available');
-    }
-
-    const numberOfGuests = createBookingDto.numberOfGuests;
-
-    if (numberOfGuests > establishment.totalSeats) {
-      throw new BadRequestException(
-        `Number of guests exceeds total seats (${establishment.totalSeats})`
-      );
-    }
-
-    const booking = this.bookingRepository.create({
-      user,
-      establishment,
-      bookingDate: new Date(createBookingDto.bookingDate),
-      bookingTime: createBookingDto.bookingTime,
-      numberOfGuests: createBookingDto.numberOfGuests,
-    });
-
-    return await this.bookingRepository.save(booking);
   }
 
   async getAllBookings(): Promise<Booking[]> {
