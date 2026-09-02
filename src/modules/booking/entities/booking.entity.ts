@@ -15,15 +15,18 @@ export enum BookingStatus {
   CANCELLED = 'CANCELLED',
 }
 
+@Index(['establishment', 'bookingDate', 'bookingTime'])
 @Entity()
 export class Booking {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(() => User, user => user.bookings, { eager: true })
+  @Index()
   user: User;
 
   @ManyToOne(() => Establishment, { eager: true })
+  @Index()
   establishment: Establishment;
 
   @Column({ type: 'date' })
@@ -38,7 +41,6 @@ export class Booking {
   @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
   status: BookingStatus;
 
-  @Index()
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 }
